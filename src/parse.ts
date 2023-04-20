@@ -8,8 +8,8 @@ const turndownService = new TurndownService({
   codeBlockStyle: "fenced",
 });
 
+const LESSONS_FILEPATH = "lessons_sorted.json";
 const CONTENT_FILEPATH = "content.json";
-const META_FILEPATH = "meta.json";
 
 const OUTPUT_FILEPATH = "out/text.md";
 const IMAGES_FOLDER = "out/images";
@@ -23,25 +23,33 @@ console.info(`Creating course '${TITLE}' ...`)
 
 await addHeader1(TITLE);
 
-const metaJson = await Deno.readTextFile(META_FILEPATH);
-const metaArray = JSON.parse(metaJson);
+const lessonsJson = await Deno.readTextFile(LESSONS_FILEPATH);
+const lessons = JSON.parse(lessonsJson);
+// note: assumes `"success": true` everywhere
+const lessonsArray = lessons.data.list;
 
 const contentJson = await Deno.readTextFile(CONTENT_FILEPATH);
 const contentArray = JSON.parse(contentJson);
 
 // note: assumes `"success": true` everywhere
-for (const metaObj of metaArray) {
-  const title = metaObj.data.name;
-  const content_id = metaObj.data.content_page_id;
+for (const lessonsObj of lessonsArray) {
+  const title = lessonsObj.name;
+  const content_id = lessonsObj.content_page_id;
+  const nesting_level = lessonsObj.nesting_level;
   
   console.info(`Adding lesson '${title}' ...`)
-
-  await addHeader2(title);
+  
+  await addHeader2plus(title, nesting_level);
+  
+  // section header
+  if (!content_id) {
+    continue;
+  }
 
   // note: assumes unique `content_id` and `"success": true` everywhere
   const contentObj = contentArray.find(contentObj => contentObj.data.id == content_id);
 
-  // todo: assumes meta and content arrays are bijective (every entry in one maps exactly to unique entry in other)
+  // todo: assumes lessons and content arrays are bijective (every entry in one maps exactly to unique entry in other)
 
   const contentBlocks = contentObj.data.content_blocks;
   
@@ -74,14 +82,14 @@ for (const metaObj of metaArray) {
 }
 
 async function addHeader1(title: string) {
-  const header = `# ${title}\n`
+  const header = `# ${title}\n\n`;
 
   await Deno.writeTextFile(OUTPUT_FILEPATH, header);
 }
 
 
-async function addHeader2(title: string) {
-  const header = `\n\n\n## ${title}\n`
+async function addHeader2plus(title: string, level: number) {
+  const header = `##${"#".repeat(level)} ${title}\n\n`;
 
   await Deno.writeTextFile(OUTPUT_FILEPATH, header, { append: true });
 }
@@ -97,7 +105,7 @@ async function handleText(child) {
   const md_ugly = turndownService.turndown(text);
   const md = format(md_ugly, { parser: "markdown" });  
 
-  const output = `\n` + md;
+  const output = md + `\n`;
 
   await Deno.writeTextFile(OUTPUT_FILEPATH, output, { append: true });
 }
