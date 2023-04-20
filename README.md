@@ -4,6 +4,23 @@ Script to scrape elopage courses
 
 
 
+## Features
+
+- Convert whole course to single markdown file
+- Download images, videos and files
+- Bonus: know about inactive lessons
+
+Note: The resulting markdown may have imperfections like empty hyperlinks, empty formatting tags, and more. These originate from elopage's HTML likely due to incorrect use of WYSIWYG formatting by the course author.
+
+
+
+## Requirements
+
+- elopage login credentials and course subscription
+- Deno and Node
+
+
+
 ## Usage
 
 - install dependencies
