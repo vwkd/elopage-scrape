@@ -25,8 +25,14 @@ DELAY=5000
 DELAY_OFFSET=2000
 ```
 
-- run
+- scrape
 
 ```sh
 npm run scrape
+```
+
+- parse
+
+```sh
+deno task parse
 ```
