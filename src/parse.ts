@@ -1,27 +1,27 @@
+import TurndownService from "npm:turndown";
+import { format } from "npm:prettier";
+
+const turndownService = new TurndownService({
+  headingStyle: "atx",
+  hr: "---",
+  bulletListMarker: "-",
+  codeBlockStyle: "fenced",
+});
+
 const CONTENT_FILEPATH = "content.json";
 const META_FILEPATH = "meta.json";
 
-const OUTPUT_FILEPATH = "out/text.html";
+const OUTPUT_FILEPATH = "out/text.md";
 const IMAGES_FOLDER = "out/images";
 const VIDEOS_FOLDER = "out/videos";
 const FILES_FOLDER = "out/files";
 
-// todo: remove in favor of markdown
-await Deno.writeTextFile(OUTPUT_FILEPATH, `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-</head>
-<body>
+// todo: use real title
+const TITLE = "PLACEHOLDER....."
 
-`);
+console.info(`Creating course '${TITLE}' ...`)
 
-// const [FILEPATH] = Deno.args;
-// if (!FILEPATH) {
-//   throw new Error(`Requires filepath argument`);
-// }
+await addHeader1(TITLE);
 
 const metaJson = await Deno.readTextFile(META_FILEPATH);
 const metaArray = JSON.parse(metaJson);
@@ -33,8 +33,10 @@ const contentArray = JSON.parse(contentJson);
 for (const metaObj of metaArray) {
   const title = metaObj.data.name;
   const content_id = metaObj.data.content_page_id;
+  
+  console.info(`Adding lesson '${title}' ...`)
 
-  await addTitle(title);
+  await addHeader2(title);
 
   // note: assumes unique `content_id` and `"success": true` everywhere
   const contentObj = contentArray.find(contentObj => contentObj.data.id == content_id);
@@ -59,7 +61,7 @@ for (const metaObj of metaArray) {
     if (form == "text") {
       await handleText(child);
     } else if (form == "picture") {
-      // handlePicture(child);
+      // await handlePicture(child);
     } else if (form == "video") {
       // handleVideo(child);
     } else if (form == "file") {
@@ -71,38 +73,31 @@ for (const metaObj of metaArray) {
   }
 }
 
-// todo: remove in favor of markdown
-await Deno.writeTextFile(OUTPUT_FILEPATH, `</body>
-</html>
-`, { append: true });
+async function addHeader1(title: string) {
+  const header = `# ${title}\n`
 
-async function addTitle(title: string) {
-  const header = `<h2>${title}</h2>`
+  await Deno.writeTextFile(OUTPUT_FILEPATH, header);
+}
 
-  const output = header + `\n\n`;
 
-  // todo:
-  // - convert to md
+async function addHeader2(title: string) {
+  const header = `\n\n\n## ${title}\n`
 
-  await Deno.writeTextFile(OUTPUT_FILEPATH, output, { append: true });
+  await Deno.writeTextFile(OUTPUT_FILEPATH, header, { append: true });
 }
 
 async function handleText(child) {
   const text = child.content.text;
 
-  // todo: remove after verified
   if (!text) {
     console.warn(`missing text in '${child.id}'`);
     return;
   }
 
-  const textUnstyled = text.replace(/(style|class|id)="[^"]*" ?/g, "").replace(/(style|class|id)='[^']*' ?/g, "").replace(/contenteditable="true" ?/g, "");
-  const output = textUnstyled + `\n\n`;
+  const md_ugly = turndownService.turndown(text);
+  const md = format(md_ugly, { parser: "markdown" });  
 
-  // todo: 
-  // - strip style
-  // - (?) strip classes
-  // - convert to md
+  const output = `\n` + md;
 
   await Deno.writeTextFile(OUTPUT_FILEPATH, output, { append: true });
 }

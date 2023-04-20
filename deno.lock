@@ -1,0 +1,26 @@
+{
+  "version": "2",
+  "remote": {},
+  "npm": {
+    "specifiers": {
+      "prettier": "prettier@2.8.7",
+      "turndown": "turndown@7.1.2"
+    },
+    "packages": {
+      "domino@2.1.6": {
+        "integrity": "sha512-3VdM/SXBZX2omc9JF9nOPCtDaYQ67BGp5CoLpIQlO2KCAPETs8TcDHacF26jXadGbvUteZzRTeos2fhID5+ucQ==",
+        "dependencies": {}
+      },
+      "prettier@2.8.7": {
+        "integrity": "sha512-yPngTo3aXUUmyuTjeTUT75txrf+aMh9FiD7q9ZE/i6r0bPb22g4FsE6Y338PQX1bmfy08i9QQCB7/rcUAVntfw==",
+        "dependencies": {}
+      },
+      "turndown@7.1.2": {
+        "integrity": "sha512-ntI9R7fcUKjqBP6QU8rBK2Ehyt8LAzt3UBT9JR9tgo6GtuKvyUzpayWmeMKJw1DPdXzktvtIT8m2mVXz+bL/Qg==",
+        "dependencies": {
+          "domino": "domino@2.1.6"
+        }
+      }
+    }
+  }
+}
