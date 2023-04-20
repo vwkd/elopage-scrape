@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 import { writeFile } from "node:fs/promises";
 import dotenv from "dotenv";
 dotenv.config()
-import { delay } from "./utils.js";
+import { delay, random_number } from "./utils.js";
 
 const USER_AGENT = process.env.USER_AGENT;
 const START_URL = process.env.START_URL;
@@ -21,14 +21,16 @@ const CONTENT_FILEPATH = "content.json";
 
 // matches `https://api.elopage.com/v1/payer/course_sessions/9999999/lessons/9999999`
 const RE_META = /^https:\/\/api\.elopage\.com\/v1\/payer\/course_sessions\/\d+\/lessons\/\d+$/;
+const isMetaResponse = res => res.request().method() == "GET" && res.url().match(RE_META)?.length;
 
 // matches `https://api.elopage.com/v1/payer/course_sessions/9999999/lessons/9999999/content_pages/9999999?screen_size=desktop`
 const RE_CONTENT = /^https:\/\/api\.elopage\.com\/v1\/payer\/course_sessions\/\d+\/lessons\/\d+\/content_pages\/\d+(?:\?[^?]+)?$/;
+const isContentResponse = res => res.request().method() == "GET" && res.url().match(RE_CONTENT)?.length;
 
 const meta = [];
 const content = [];
 
-console.info(`Starting scrape '${START_URL}' ...`);
+console.info(`Start scraping course '${START_URL}' ...`);
 
 const browser = await puppeteer.launch({
   headless: false,
@@ -43,12 +45,12 @@ const page = await browser.newPage();
 
 await page.setUserAgent(USER_AGENT);
 
-console.info(`Scraping page ${meta.length + 1}...`)
+console.info(`Logging in...`)
 
 // start listening before `goto` navigation call to not miss responses
 // check for GET request to skip OPTIONS preflight requests
-const metaResponsePromise = page.waitForResponse(res => res.request().method() == "GET" && res.url().match(RE_META)?.length);
-const contentResponsePromise = page.waitForResponse(res => res.request().method() == "GET" && res.url().match(RE_CONTENT)?.length);
+const metaResponsePromise = page.waitForResponse(isMetaResponse);
+const contentResponsePromise = page.waitForResponse(isContentResponse);
 
 await page.goto(START_URL);
 
@@ -60,6 +62,8 @@ await page.waitForSelector("div.content-page");
 
 // dismiss consent bot banner
 await page.click("#CybotCookiebotDialogBodyButtonDecline");
+
+console.info(`Scraping page ${meta.length + 1}...`);
 
 const metaResponse = await metaResponsePromise;
 // console.debug(`Got meta response`);
@@ -74,20 +78,21 @@ content.push(contentJson);
 const selectorNextButton = "div.cs-course-lesson-btn-next > button";
 
 while (true) {
-  // delay +- random offset, computed formula `Math.random() * (max - min) + min`
-  await delay(Math.random() * (2 * DELAY_OFFSET) + (DELAY - DELAY_OFFSET));
-
-  const metaResponsePromise = page.waitForResponse(res => res.request().method() == "GET" && res.url().match(RE_META)?.length);
-  const contentResponsePromise = page.waitForResponse(res => res.request().method() == "GET" && res.url().match(RE_CONTENT)?.length);
-
-  console.info(`Scraping page ${meta.length + 1}...`)
-
   // exit when next button is invisible on last page
   try {
-    await page.waitForSelector(selectorNextButton, { visible: true });
+    await page.waitForSelector(selectorNextButton, { visible: true, timeout: 1000 });
   } catch {
+    console.info(`Finished scraping`);
     break;
   }
+  
+  console.info(`Scraping page ${meta.length + 1}...`)
+
+  // delay +- random offset, random_number
+  await delay(random_number(DELAY, DELAY_OFFSET));
+
+  const metaResponsePromise = page.waitForResponse(isMetaResponse);
+  const contentResponsePromise = page.waitForResponse(isContentResponse);
 
   await page.click(selectorNextButton);
 
