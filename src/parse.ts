@@ -102,7 +102,10 @@ async function handleText(child) {
     return;
   }
 
-  const md_ugly = turndownService.turndown(text);
+  // fix unrespected line breaks [#433](https://github.com/mixmark-io/turndown/issues/433)
+  const html_fixed = text.replace(/<strong>(<br>)+<\/strong>/g, "$1");
+
+  const md_ugly = turndownService.turndown(html_fixed);
   const md = format(md_ugly, { parser: "markdown" });  
 
   const output = md + `\n`;
