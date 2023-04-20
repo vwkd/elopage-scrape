@@ -31,6 +31,12 @@ DELAY_OFFSET=2000
 npm run scrape
 ```
 
+- sort
+
+```sh
+deno task sort
+```
+
 - parse
 
 ```sh
