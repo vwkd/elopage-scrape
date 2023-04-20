@@ -66,10 +66,16 @@ function order() {
     currentLevel -= 1;
   // continue going down
   } else {
-    console.info(`Add '${header?.name}' ...`);
-
     header.nesting_level = currentLevel;
-    array_sorted.push(header);
+
+    // don't add inactive headers since didn't scrape
+    if (header.active === false) {
+      console.warn(`Skip inactive '${header?.name}' ...`);
+    } else {
+      console.info(`Add '${header?.name}' ...`);
+      array_sorted.push(header);
+    }
+
     array.removeElement(header);
 
     currentLevel += 1;
