@@ -2,6 +2,7 @@ import "$std/dotenv/load.ts";
 
 import { sortLessons } from "./sort.ts";
 import { getContent, getCourse, getLessons } from "./api.ts";
+import type { Content } from "./types/content.ts";
 
 const START_URL = Deno.env.get("START_URL");
 const TOKEN = Deno.env.get("ACCESS_TOKEN");
@@ -24,7 +25,7 @@ sortLessons(lessons);
 await Deno.writeTextFile(LESSONS_FILEPATH, JSON.stringify(lessons));
 
 console.info(`Scraping lesson content ...`);
-const content = [];
+const content: Content[] = [];
 const lessonsArray = lessons.data.list;
 for (const lessonsObj of lessonsArray) {
   const lesson_id = lessonsObj.id;

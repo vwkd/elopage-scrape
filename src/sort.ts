@@ -1,3 +1,5 @@
+import type { Lessons, List } from "./types/lessons.ts";
+
 /**
  * Gets minimum object element of array with respect to property
  * note: assumes elements are objects, doesn't verify
@@ -44,7 +46,7 @@ Array.prototype.removeElement = function (el: unknown) {
  * Sort lessons in-place and add nesting level
  * beware: mutates the input!
  */
-export function sortLessons(lessons) {
+export function sortLessons(lessons: Lessons) {
   // assumes `"success": true` everywhere
   const array = lessons.data.list;
 
@@ -52,7 +54,7 @@ export function sortLessons(lessons) {
   // note: shouldn't be higher than 5 since Markdown only supports 6 header levels
   let currentLevel = 0;
 
-  const array_sorted = [];
+  const array_sorted: List[] = [];
 
   recurse();
 
