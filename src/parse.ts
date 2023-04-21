@@ -1,13 +1,16 @@
+import "$std/dotenv/load.ts";
+
 import TurndownService from "npm:turndown";
 import { format } from "npm:prettier";
+import { join } from "$std/path/mod.ts";
 
-const turndownService = new TurndownService({
-  headingStyle: "atx",
-  hr: "---",
-  bulletListMarker: "-",
-  codeBlockStyle: "fenced",
-});
+import { delay, random_number } from "./utils.ts";
 
+const USER_AGENT = Deno.env.get("USER_AGENT");
+const DELAY = Deno.env.get("DELAY");
+const DELAY_OFFSET = Deno.env.get("DELAY_OFFSET");
+
+const COURSE_FILEPATH = "course.json";
 const LESSONS_FILEPATH = "lessons.json";
 const CONTENT_FILEPATH = "content.json";
 
@@ -16,49 +19,57 @@ const IMAGES_FOLDER = "out/images";
 const VIDEOS_FOLDER = "out/videos";
 const FILES_FOLDER = "out/files";
 
-// todo: use real title
-const TITLE = "PLACEHOLDER.....";
+const turndownService = new TurndownService({
+  headingStyle: "atx",
+  hr: "---",
+  bulletListMarker: "-",
+  codeBlockStyle: "fenced",
+});
 
-console.info(`Creating course '${TITLE}' ...`);
+let output = "";
+const promises = [];
 
-await addHeader1(TITLE);
-
+const courseJson = await Deno.readTextFile(COURSE_FILEPATH);
 const lessonsJson = await Deno.readTextFile(LESSONS_FILEPATH);
-const lessons = JSON.parse(lessonsJson);
-// note: assumes `"success": true` everywhere
-const lessonsArray = lessons.data.list;
-
 const contentJson = await Deno.readTextFile(CONTENT_FILEPATH);
+const course = JSON.parse(courseJson);
+const lessons = JSON.parse(lessonsJson);
 const contentArray = JSON.parse(contentJson);
 
-// note: assumes `"success": true` everywhere
+// note: assumes valid data, e.g. `"success": true`
+const title = course.data.product.name;
+
+console.info(`Start parsing course '${title}' ...`);
+
+output += `# ${title}\n\n`;
+
+// note: assumes valid data, e.g. `"success": true`
+const lessonsArray = lessons.data.list;
 for (const lessonsObj of lessonsArray) {
-  const title = lessonsObj.name;
+  const header = lessonsObj.name;
   const content_id = lessonsObj.content_page_id;
   const nesting_level = lessonsObj.nesting_level;
 
-  console.info(`Adding lesson '${title}' ...`);
+  console.info(`Adding lesson '${header}' ...`);
 
-  await addHeader2plus(title, nesting_level);
+  output += `##${"#".repeat(nesting_level)} ${header}\n\n`;
 
-  // section header
+  // skip section header
   if (!content_id) {
     continue;
   }
 
-  // note: assumes unique `content_id` and `"success": true` everywhere
+  // get content of lesson
+  // note: assumes lessons array and content array are bijective, i.e. every entry in one maps exactly to unique entry in other, e.g. unique `content_id`
+  // note: assumes valid data, e.g. `"success": true`
   const contentObj = contentArray.find((contentObj) => contentObj.data.id == content_id);
 
-  // todo: assumes lessons and content arrays are bijective (every entry in one maps exactly to unique entry in other)
-
   const contentBlocks = contentObj.data.content_blocks;
-
   for (const contentBlock of contentBlocks) {
     const children = contentBlock.children;
 
-    // note: there is always only 1
+    // note: always only 1 child
     const child = children[0];
-
     // todo: remove after verified
     if (children.length != 1) {
       console.error(`children more than 1: '${contentBlock.id}'`);
@@ -67,93 +78,119 @@ for (const lessonsObj of lessonsArray) {
     const form = child.form;
 
     if (form == "text") {
-      await handleText(child);
+      const text = child.content.text;
+
+      if (!text) {
+        console.warn(`missing text in '${child.id}'`);
+        continue;
+      }
+
+      // fix unrespected line breaks [#433](https://github.com/mixmark-io/turndown/issues/433)
+      const html_fixed = text.replace(/<strong>(<br>)+<\/strong>/g, "$1");
+
+      const md_ugly = turndownService.turndown(html_fixed);
+      const md = format(md_ugly, { parser: "markdown" });
+
+      output += md + `\n`;
     } else if (form == "picture") {
-      // await handlePicture(child);
+      // todo: verify that there always is name and url
+
+      // todo: remove after verified and noted
+      if (child.goods.length != 1) {
+        console.error(`goods more than 1: '${child.id}'`);
+      }
+
+      // todo: which filename?
+      const filename = child.goods[0].digital.name;
+      const filename2 = child.goods[0].digital.file.name;
+      // todo: remove after verified and noted
+      if (filename !== filename2) {
+        console.error(`different filenames: '${filename}' vs. '${filename2}'`);
+      }
+
+      // todo: which URL?
+      const url = child.cover.url;
+      const url2 = child.goods[0].digital.file.icon;
+      // todo: remove after verified and noted
+      if (!url2.startsWith(url)) {
+        console.error(`different urls: '${url}' vs. '${url2}'`);
+      }
+
+      promises.push(download(url, filename, IMAGES_FOLDER));
     } else if (form == "video") {
-      // handleVideo(child);
+      // todo: verify that there always is name and url
+
+      // todo: remove after verified and noted
+      if (child.goods.length != 1) {
+        console.error(`goods more than 1: '${child.id}'`);
+      }
+
+      const filename = child.goods[0].digital.wistia_data.name;
+      //child.goods[0].digital.file.name;
+
+      const asset = child.goods[0].digital.wistia_data.assets.find(a => a.type == "OriginalFile");
+      const url = asset.url;
+
+      // todo: get thumbnail if available
+      //child.goods[0].digital.file....
+
+      promises.push(download(url, filename, VIDEOS_FOLDER));
     } else if (form == "file") {
-      // handleFile(child);
+      // todo: verify that there always is name and url
+
+      // todo: remove after verified and noted
+      if (child.goods.length != 1) {
+        console.error(`goods more than 1: '${child.id}'`);
+      }
+
+      const filename = child.goods[0].digital.file.name;
+
+      // todo: which URL?
+      const url = child.goods[0].digital.file.original;
+      const url2 = child.goods[0].digital.file.icon;
+      // todo: remove after verified and noted
+      if (!url2.startsWith(url)) {
+        console.error(`different urls: '${url}' vs. '${url2}'`);
+      }
+
+      promises.push(download(url, filename, FILES_FOLDER));
     } else {
       throw new Error(`unexpected content block form '${form}'`);
     }
   }
 }
 
-async function addHeader1(title: string) {
-  const header = `# ${title}\n\n`;
+await Deno.writeTextFile(OUTPUT_FILEPATH, output);
+await Promise.all(promises);
 
-  await Deno.writeTextFile(OUTPUT_FILEPATH, header);
-}
+/**
+ * Download file and streamingly write
+ * note: delayed by delay +- random offset
+ */
+async function download(url: string, filename: string, foldername: string) {
 
-async function addHeader2plus(title: string, level: number) {
-  const header = `##${"#".repeat(level)} ${title}\n\n`;
+  await delay(random_number(DELAY, DELAY_OFFSET));
 
-  await Deno.writeTextFile(OUTPUT_FILEPATH, header, { append: true });
-}
+  const res = await fetch(url, {
+    "headers": {
+      "accept": "application/json, text/plain, */*",
+      "accept-encoding": "gzip, deflate, br",
+      "accept-language": "en-GB,en;q=0.5",
+      "referer": "https://elopage.com/",
+      "sec-fetch-dest": "image",
+      "sec-fetch-mode": "no-cors",
+      "sec-fetch-site": "cross-site",
+      "user-agent": USER_AGENT,
+    },
+  });
 
-async function handleText(child) {
-  const text = child.content.text;
-
-  if (!text) {
-    console.warn(`missing text in '${child.id}'`);
+  if (!res.ok) {
+    console.error(`Skipping response that's not ok: '${res.status}' - '${res.statusText}'`);
     return;
   }
 
-  // fix unrespected line breaks [#433](https://github.com/mixmark-io/turndown/issues/433)
-  const html_fixed = text.replace(/<strong>(<br>)+<\/strong>/g, "$1");
-
-  const md_ugly = turndownService.turndown(html_fixed);
-  const md = format(md_ugly, { parser: "markdown" });
-
-  const output = md + `\n`;
-
-  await Deno.writeTextFile(OUTPUT_FILEPATH, output, { append: true });
-}
-
-function handlePicture(child) {
-  // todo: verify that there always is name and url
-
-  // todo: remove after verified and noted
-  if (child.goods.length != 1) {
-    console.error(`goods more than 1: '${child.id}'`);
-  }
-
-  const filename = child.goods[0].digital.name;
-
-  // todo: remove after verified and noted
-  const filename2 = child.goods[0].digital.file.name;
-  if (filename !== filename2) {
-    console.error(`different filenames: '${filename}' vs '${filename2}'`);
-  }
-
-  // todo:
-  // const url = child.goods[0].digital.file...
-
-  // todo: download
-}
-
-function handleVideo(child) {
-  // todo: verify that there always is name and url
-
-  // todo: remove after verified and noted
-  if (child.goods[0].digital.wistia_data.assets.length != 1) {
-    console.error(`assets more than 1: '${child.goods[0].digital.wistia_data.id}'`);
-  }
-
-  const filename = child.goods[0].digital.wistia_data.name;
-  //child.goods[0].digital.file.name;
-  const url = child.goods[0].digital.wistia_data.assets[0].url;
-  const url_thumbnail = child.goods[0].digital.wistia_data.thumbnail.url;
-  // digital.file seems to be useless
-
-  // todo: download
-}
-
-function handleFile(child) {
-  // todo: verify that there always is name and url
-  const filename = child.goods[0].digital.file.name;
-  const url = child.goods[0].digital.file.original;
-
-  // todo: download
+  const filepath = join(foldername, filename);
+  const file = await Deno.create(filepath);
+  await res.body.pipeTo(file.writable);
+  file.close();
 }
