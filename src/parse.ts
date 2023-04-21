@@ -8,7 +8,7 @@ const turndownService = new TurndownService({
   codeBlockStyle: "fenced",
 });
 
-const LESSONS_FILEPATH = "lessons_sorted.json";
+const LESSONS_FILEPATH = "lessons.json";
 const CONTENT_FILEPATH = "content.json";
 
 const OUTPUT_FILEPATH = "out/text.md";

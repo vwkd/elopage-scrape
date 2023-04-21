@@ -3,6 +3,8 @@ import { writeFile } from "node:fs/promises";
 import dotenv from "dotenv";
 dotenv.config()
 import { delay, random_number } from "./utils.js";
+import { sortLessons } from "./sort.js";
+import { makeRequest } from "./api.js";
 
 const USER_AGENT = process.env.USER_AGENT;
 const START_URL = process.env.START_URL;
@@ -19,15 +21,9 @@ const VIEWPORT_HEIGHT = process.env.VIEWPORT_HEIGHT;
 const LESSONS_FILEPATH = "lessons.json";
 const CONTENT_FILEPATH = "content.json";
 
-// matches `https://api.elopage.com/v1/payer/course_sessions/9999999/lessons?page=1&query=&per=10000&sort_key=id&sort_dir=desc&course_session_id=9999999`
-const RE_LESSONS = /^https:\/\/api\.elopage\.com\/v1\/payer\/course_sessions\/\d+\/lessons(?:\?[^?]+)?$/;
-const isLessonsResponse = res => res.request().method() == "GET" && res.url().match(RE_LESSONS)?.length;
+const LESSONS_URL = (course_session_id) => `https://api.elopage.com/v1/payer/course_sessions/${course_session_id}/lessons?page=1&query=&per=10000&sort_key=id&sort_dir=desc&course_session_id=${course_session_id}`;
 
-// matches `https://api.elopage.com/v1/payer/course_sessions/9999999/lessons/9999999/content_pages/9999999?screen_size=desktop`
-const RE_CONTENT = /^https:\/\/api\.elopage\.com\/v1\/payer\/course_sessions\/\d+\/lessons\/\d+\/content_pages\/\d+(?:\?[^?]+)?$/;
-const isContentResponse = res => res.request().method() == "GET" && res.url().match(RE_CONTENT)?.length;
-
-const content = [];
+const CONTENT_URL = (course_session_id, lesson_id, content_page_id) => `https://api.elopage.com/v1/payer/course_sessions/${course_session_id}/lessons/${lesson_id}/content_pages/${content_page_id}?screen_size=desktop`;
 
 console.info(`Start scraping course '${START_URL}' ...`);
 
@@ -39,67 +35,72 @@ const browser = await puppeteer.launch({
     height: Number(VIEWPORT_HEIGHT),
   }
 });
-
 const page = await browser.newPage();
-
 await page.setUserAgent(USER_AGENT);
 
-console.info(`Logging in...`)
-
-// start listening before `goto` navigation call to not miss responses
-// check for GET request to skip OPTIONS preflight requests
-const lessonsResponsePromise = page.waitForResponse(isLessonsResponse);
-const contentResponsePromise1 = page.waitForResponse(isContentResponse);
-
+// open page
 await page.goto(START_URL);
 
+// login
 await page.type("#sign-in-email-text-field", USERNAME);
 await page.type("#sign-in-password-text-field", PASSWORD);
 await page.click("div.auth-form > div.elo-btn-container:nth-child(4) > button");
-
 await page.waitForSelector("div.content-page");
 
-// dismiss consent bot banner
-await page.click("#CybotCookiebotDialogBodyButtonDecline");
+// get access token from cookies
+const cookies = await page.cookies();
+const token = cookies.find(e => e.name == "p_access_token")?.value;
+console.info(`Got access_token '${token}'`);
 
-console.info(`Scraping page ${content.length + 1}...`);
+// get course_session_id from URL
+const url = new URL(page.url());
+const course_session_id = url.searchParams.get("course_session_id");
+console.info(`Got course_session_id '${course_session_id}'`);
 
-const lessonsResponse = await lessonsResponsePromise;
-// console.debug(`Got lessons response`);
+await browser.close();
+
+// get lessons
+console.info(`Fetching lessons from API ...`);
+const lessonsUrl = LESSONS_URL(course_session_id);
+// delay +- random offset, random_number
+await delay(random_number(DELAY, DELAY_OFFSET));
+const lessonsResponse = await makeRequest(lessonsUrl, token, USER_AGENT);
 const lessons = await lessonsResponse.json();
+// await writeFile(LESSONS_FILEPATH, JSON.stringify(lessons));
+console.info(`Got ${lessons.data.total_count} lessons`);
 
-const contentResponse1 = await contentResponsePromise1;
-// console.debug(`Got content response`);
-const contentJson1 = await contentResponse1.json();
-content.push(contentJson1);
+// sort lessons
+sortLessons(lessons);
+await writeFile(LESSONS_FILEPATH, JSON.stringify(lessons));
 
-const selectorNextButton = "div.cs-course-lesson-btn-next > button";
-
-while (true) {
-  // exit when next button is invisible on last page
-  try {
-    await page.waitForSelector(selectorNextButton, { visible: true, timeout: 1000 });
-  } catch {
-    console.info(`Finished scraping`);
-    break;
-  }
+// get content page for each lesson
+console.info(`Fetching content pages from API ...`)
+const content = [];
+const lessonsArray = lessons.data.list;
+for (const lessonsObj of lessonsArray) {
+  const title = lessonsObj.name;
+  const lesson_id = lessonsObj.id;
+  const content_page_id = lessonsObj.content_page_id;
+  const active = lessonsObj.active;
   
-  console.info(`Scraping page ${content.length + 1}...`)
+  // skip section header
+  if (!content_page_id) {
+    console.info(`Skipping section header '${title}'`);
+    continue;
+  }
 
+  if (active === false) {
+    console.info(`Fetching inactive lesson '${lesson_id}' - '${content_page_id}' - '${title}' ...`);
+  } else {
+    console.info(`Fetching lesson '${lesson_id}' - '${content_page_id}' - '${title}' ...`);
+  }
+
+  const contentUrl = CONTENT_URL(course_session_id, lesson_id, content_page_id);
   // delay +- random offset, random_number
   await delay(random_number(DELAY, DELAY_OFFSET));
-
-  const contentResponsePromise = page.waitForResponse(isContentResponse);
-
-  await page.click(selectorNextButton);
-
-  const contentResponse = await contentResponsePromise;
-  // console.debug(`Got content response`);
+  const contentResponse = await makeRequest(contentUrl, token, USER_AGENT);
   const contentJson = await contentResponse.json();
   content.push(contentJson);
 }
 
-await browser.close();
-
-await writeFile(LESSONS_FILEPATH, JSON.stringify(lessons));
 await writeFile(CONTENT_FILEPATH, JSON.stringify(content));
