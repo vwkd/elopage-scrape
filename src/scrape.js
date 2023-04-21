@@ -1,29 +1,27 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "$std/dotenv/load.ts";
 
-import { writeFile } from "node:fs/promises";
-import { login } from "./login.js";
 import { sortLessons } from "./sort.js";
 import { getContent, getCourse, getLessons } from "./api.js";
 
-const START_URL = process.env.START_URL;
+const START_URL = Deno.env.get("START_URL");
+const TOKEN = Deno.env.get("ACCESS_TOKEN");
 
 const COURSE_FILEPATH = "course.json";
 const LESSONS_FILEPATH = "lessons.json";
 const CONTENT_FILEPATH = "content.json";
 
-console.info(`Start scraping course '${START_URL}' ...`);
-
-const { token, course_session_id } = login();
+const url = new URL(START_URL);
+const course_session_id = url.searchParams.get("course_session_id");
+console.info(`Start scraping course '${course_session_id}' ...`);
 
 console.info(`Scraping course details ...`);
-const course = await getCourse(course_session_id, token);
-await writeFile(COURSE_FILEPATH, JSON.stringify(course));
+const course = await getCourse(course_session_id, TOKEN);
+await Deno.writeTextFile(COURSE_FILEPATH, JSON.stringify(course));
 
 console.info(`Scraping lesson index ...`);
-const lessons = await getLessons(course_session_id, token);
+const lessons = await getLessons(course_session_id, TOKEN);
 sortLessons(lessons);
-await writeFile(LESSONS_FILEPATH, JSON.stringify(lessons));
+await Deno.writeTextFile(LESSONS_FILEPATH, JSON.stringify(lessons));
 
 console.info(`Scraping lesson content ...`);
 const content = [];
@@ -45,9 +43,9 @@ for (const lessonsObj of lessonsArray) {
     console.info(`Scraping '${title}' ...`);
   }
 
-  const content_page = await getContent(lesson_id, content_page_id, course_session_id, token);
+  const content_page = await getContent(lesson_id, content_page_id, course_session_id, TOKEN);
 
   content.push(content_page);
 }
 
-await writeFile(CONTENT_FILEPATH, JSON.stringify(content));
+await Deno.writeTextFile(CONTENT_FILEPATH, JSON.stringify(content));

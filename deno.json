@@ -1,5 +1,9 @@
 {
   "tasks": {
+    "scrape": "deno run --allow-env --allow-net --allow-read --allow-write src/scrape.js",
     "parse": "deno run --allow-read --allow-write src/parse.ts"
+  },
+  "imports": {
+    "$std/": "https://deno.land/std@0.184.0/"
   }
 }

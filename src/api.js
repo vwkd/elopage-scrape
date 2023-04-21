@@ -1,11 +1,10 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "$std/dotenv/load.ts";
 
 import { delay, random_number } from "./utils.js";
 
-const USER_AGENT = process.env.USER_AGENT;
-const DELAY = process.env.DELAY;
-const DELAY_OFFSET = process.env.DELAY_OFFSET;
+const USER_AGENT = Deno.env.get("USER_AGENT");
+const DELAY = Deno.env.get("DELAY");
+const DELAY_OFFSET = Deno.env.get("DELAY_OFFSET");
 
 /**
  * Get course details from API
