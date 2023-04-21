@@ -8,6 +8,23 @@ const DELAY = process.env.DELAY;
 const DELAY_OFFSET = process.env.DELAY_OFFSET;
 
 /**
+ * Get course details from API
+ * note: delayed by delay +- random offset
+ */
+export async function getCourse(course_session_id, token) {
+  // console.debug(`Fetching course from API ...`);
+
+  const courseUrl = `https://api.elopage.com/v1/payer/course_sessions/${course_session_id}`;
+
+  await delay(random_number(DELAY, DELAY_OFFSET));
+
+  const courseResponse = await makeRequest(courseUrl, token);
+  const course = await courseResponse.json();
+
+  return course;
+}
+
+/**
  * Get lessons from API
  * note: delayed by delay +- random offset
  */

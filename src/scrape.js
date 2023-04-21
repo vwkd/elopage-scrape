@@ -4,16 +4,21 @@ dotenv.config();
 import { writeFile } from "node:fs/promises";
 import { login } from "./login.js";
 import { sortLessons } from "./sort.js";
-import { getContent, getLessons } from "./api.js";
+import { getContent, getCourse, getLessons } from "./api.js";
 
 const START_URL = process.env.START_URL;
 
+const COURSE_FILEPATH = "course.json";
 const LESSONS_FILEPATH = "lessons.json";
 const CONTENT_FILEPATH = "content.json";
 
 console.info(`Start scraping course '${START_URL}' ...`);
 
 const { token, course_session_id } = login();
+
+console.info(`Scraping course details ...`);
+const course = await getCourse(course_session_id, token);
+await writeFile(COURSE_FILEPATH, JSON.stringify(course));
 
 console.info(`Scraping lesson index ...`);
 const lessons = await getLessons(course_session_id, token);
