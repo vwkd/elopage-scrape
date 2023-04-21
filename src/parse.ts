@@ -1,4 +1,5 @@
 import "$std/dotenv/load.ts";
+import { exists } from "$std/fs/exists.ts";
 
 import TurndownService from "npm:turndown";
 import { format } from "npm:prettier";
@@ -30,7 +31,6 @@ const turndownService = new TurndownService({
 });
 
 let output = "";
-const promises = [];
 
 const courseJson = await Deno.readTextFile(COURSE_FILEPATH);
 const lessonsJson = await Deno.readTextFile(LESSONS_FILEPATH);
@@ -53,7 +53,7 @@ for (const lessonsObj of lessonsArray) {
   const content_id = lessonsObj.content_page_id;
   const nesting_level = lessonsObj.nesting_level;
 
-  console.info(`Adding lesson '${header}' ...`);
+  console.debug(`Adding lesson '${header}' ...`);
 
   output += `##${"#".repeat(nesting_level)} ${header}\n\n`;
 
@@ -119,7 +119,7 @@ for (const lessonsObj of lessonsArray) {
         console.error(`different urls: '${url}' vs. '${url2}'`);
       }
 
-      promises.push(download(url, filename, IMAGES_FOLDER));
+      await download(url, filename, IMAGES_FOLDER);
     } else if (form == "video") {
       // todo: verify that there always is name and url
 
@@ -137,7 +137,7 @@ for (const lessonsObj of lessonsArray) {
       // todo: get thumbnail if available
       //child.goods[0].digital.file....
 
-      promises.push(download(url, filename, VIDEOS_FOLDER));
+      await download(url, filename, VIDEOS_FOLDER);
     } else if (form == "file") {
       // todo: verify that there always is name and url
 
@@ -156,7 +156,7 @@ for (const lessonsObj of lessonsArray) {
         console.error(`different urls: '${url}' vs. '${url2}'`);
       }
 
-      promises.push(download(url, filename, FILES_FOLDER));
+      await download(url, filename, FILES_FOLDER);
     } else {
       throw new Error(`unexpected content block form '${form}'`);
     }
@@ -164,13 +164,23 @@ for (const lessonsObj of lessonsArray) {
 }
 
 await Deno.writeTextFile(OUTPUT_FILEPATH, output);
-await Promise.all(promises);
 
 /**
  * Download file and streamingly write
  * note: delayed by delay +- random offset
  */
 async function download(url: string, filename: string, foldername: string) {
+  const filepath = join(foldername, filename);
+
+  if (await exists(filepath, {
+    isReadable: true,
+    isFile: true,
+  })) {
+    console.debug(`Skip download already exists '${filename}'`);
+    return;
+  } else {
+    console.debug(`Downloading '${filename}' ...`);
+  }
 
   await delay(random_number(DELAY, DELAY_OFFSET));
 
@@ -192,7 +202,6 @@ async function download(url: string, filename: string, foldername: string) {
     return;
   }
 
-  const filepath = join(foldername, filename);
   const file = await Deno.create(filepath);
   await res.body.pipeTo(file.writable);
   file.close();
