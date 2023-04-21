@@ -29,9 +29,8 @@ for (const lessonsObj of lessonsArray) {
   const content_page_id = lessonsObj.content_page_id;
   const active = lessonsObj.active;
   
-  // skip section header
   if (!content_page_id) {
-    console.info(`Skipping section header '${title}'`);
+    console.debug(`Skipping section header '${title}'`);
     continue;
   }
 

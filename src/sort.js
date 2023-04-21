@@ -1,5 +1,16 @@
-// assumes property exists
-// note: assumes property is unique, i.e. no duplicate positions
+/**
+ * Gets minimum object element of array with respect to property
+ * note: assumes elements are objects, doesn't verify
+ * note: assumes property exists, doesn't verify
+ * note: assumes property is unique, i.e. no two identical values
+ *
+ * For example
+ *
+ * ```js
+ * const a = [{x: 3}, {x: 1}, {x: 2}];
+ * const b = a.getMinimum("x");
+ * ```
+ */
 Array.prototype.getMinimum = function(propName) {
   if (this.length) {
     return this.reduce((prev, curr) => prev[propName] < curr[propName] ? prev : curr);
@@ -8,7 +19,19 @@ Array.prototype.getMinimum = function(propName) {
   }
 }
 
-// assumes object reference is unique, not added twice
+/**
+ * Removes element from array
+ * note: mutates array in place
+ * note: assumes elements are unique, deletes only first element
+ *
+ * For example, with object references
+ *
+ * ```js
+ * const a = [{x: 1}, {x: 2}, {x: 3}];
+ * const b = a[2];
+ * a.removeElement(a);
+ * ```
+ */
 Array.prototype.removeElement = function(el) {
   const index = this.indexOf(el);
   if (index !== -1) {

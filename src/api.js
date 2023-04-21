@@ -9,13 +9,13 @@ const DELAY_OFFSET = process.env.DELAY_OFFSET;
 
 /**
  * Get lessons from API
+ * note: delayed by delay +- random offset
  */
 export async function getLessons(course_session_id, token) {
   // console.debug(`Fetching lessons from API ...`);
 
   const lessonsUrl = `https://api.elopage.com/v1/payer/course_sessions/${course_session_id}/lessons?page=1&query=&per=10000&sort_key=id&sort_dir=desc&course_session_id=${course_session_id}`;
 
-  // delay +- random offset, random_number
   await delay(random_number(DELAY, DELAY_OFFSET));
 
   const lessonsResponse = await makeRequest(lessonsUrl, token);
@@ -27,13 +27,13 @@ export async function getLessons(course_session_id, token) {
 
 /**
  * Get content of lesson from API
+ * note: delayed by delay +- random offset
  */
 export async function getContent(lesson_id, content_page_id, course_session_id, token) {
   // console.debug(`Fetching content '${content_page_id}' of lesson '${lesson_id}' from API ...`);
 
   const contentUrl = `https://api.elopage.com/v1/payer/course_sessions/${course_session_id}/lessons/${lesson_id}/content_pages/${content_page_id}?screen_size=desktop`;
 
-  // delay +- random offset, random_number
   await delay(random_number(DELAY, DELAY_OFFSET));
 
   const contentResponse = await makeRequest(contentUrl, token);
