@@ -6,9 +6,9 @@ Script to scrape elopage courses
 
 ## Features
 
-- Convert whole course to single markdown file
-- Download images, videos and files
-- Bonus: know about inactive lessons
+- Download all lessons of course including inactive lessons
+- Save text as single markdown file with nested headers
+- Download all linked files like images, videos and documents
 
 Note: The resulting markdown may have imperfections like empty hyperlinks, empty formatting tags, and more. These originate from elopage's HTML likely due to incorrect use of WYSIWYG formatting by the course author.
 
@@ -17,7 +17,8 @@ Note: The resulting markdown may have imperfections like empty hyperlinks, empty
 ## Requirements
 
 - elopage course subscription
-- elopage login cookie `p_access_token` and start url `https://elopage.com/payer/s/foobar/courses/bazbuz?course_session_id=1234567&lesson_id=7654321`
+- elopage start url, e.g. `https://elopage.com/payer/s/foobar/courses/bazbuz?course_session_id=1234567&lesson_id=7654321`
+- elopage access token, e.g. cookie `p_access_token`
 - Deno
 
 
