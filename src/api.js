@@ -36,7 +36,7 @@ export async function getLessons(course_session_id, token) {
 
   const lessonsResponse = await makeRequest(lessonsUrl, token);
   const lessons = await lessonsResponse.json();
-  console.info(`Got ${lessons.data.total_count} lessons`);
+  // console.debug(`Got ${lessons.data.total_count} lessons`);
 
   return lessons;
 }

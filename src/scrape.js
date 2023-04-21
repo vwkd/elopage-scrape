@@ -27,20 +27,21 @@ console.info(`Scraping lesson content ...`);
 const content = [];
 const lessonsArray = lessons.data.list;
 for (const lessonsObj of lessonsArray) {
-  const title = lessonsObj.name;
   const lesson_id = lessonsObj.id;
   const content_page_id = lessonsObj.content_page_id;
+
+  const title = lessonsObj.name;
   const active = lessonsObj.active;
 
   if (!content_page_id) {
-    console.debug(`Skipping section header '${title}'`);
+    // console.debug(`Skipping section header '${title}'`);
     continue;
   }
 
   if (active === false) {
-    console.info(`Scraping [INACTIVE] '${title}' ...`);
+    // console.debug(`Scraping [INACTIVE] '${title}' ...`);
   } else {
-    console.info(`Scraping '${title}' ...`);
+    // console.debug(`Scraping '${title}' ...`);
   }
 
   const content_page = await getContent(lesson_id, content_page_id, course_session_id, TOKEN);
