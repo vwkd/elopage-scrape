@@ -10,7 +10,7 @@ const DELAY_OFFSET = Deno.env.get("DELAY_OFFSET");
  * Get course details from API
  * note: delayed by delay +- random offset
  */
-export async function getCourse(course_session_id, token) {
+export async function getCourse(course_session_id: string, token: string) {
   // console.debug(`Fetching course from API ...`);
 
   const courseUrl = `https://api.elopage.com/v1/payer/course_sessions/${course_session_id}`;
@@ -27,7 +27,7 @@ export async function getCourse(course_session_id, token) {
  * Get lessons from API
  * note: delayed by delay +- random offset
  */
-export async function getLessons(course_session_id, token) {
+export async function getLessons(course_session_id: string, token: string) {
   // console.debug(`Fetching lessons from API ...`);
 
   const lessonsUrl = `https://api.elopage.com/v1/payer/course_sessions/${course_session_id}/lessons?page=1&query=&per=10000&sort_key=id&sort_dir=desc&course_session_id=${course_session_id}`;
@@ -45,7 +45,7 @@ export async function getLessons(course_session_id, token) {
  * Get content of lesson from API
  * note: delayed by delay +- random offset
  */
-export async function getContent(lesson_id, content_page_id, course_session_id, token) {
+export async function getContent(lesson_id: string, content_page_id: string, course_session_id: string, token: string) {
   // console.debug(`Fetching content '${content_page_id}' of lesson '${lesson_id}' from API ...`);
 
   const contentUrl = `https://api.elopage.com/v1/payer/course_sessions/${course_session_id}/lessons/${lesson_id}/content_pages/${content_page_id}?screen_size=desktop`;
@@ -58,7 +58,7 @@ export async function getContent(lesson_id, content_page_id, course_session_id, 
   return content;
 }
 
-async function makeRequest(url, token) {
+async function makeRequest(url: string, token: string) {
   return fetch(url, {
     "headers": {
       "accept": "application/json, text/plain, */*",

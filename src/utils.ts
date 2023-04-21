@@ -1,7 +1,7 @@
 /**
  * Delays milliseconds
  */
-export function delay(ms) {
+export function delay(ms: number) {
   return new Promise((res, rej) => {
     setTimeout(res, ms);
   });
@@ -11,6 +11,6 @@ export function delay(ms) {
  * Generates random number around mean between offset
  * is computed formula `Math.random() * (max - min) + min`
  */
-export function random_number(mean, offset) {
+export function random_number(mean: number, offset: number) {
   return Math.random() * (2 * offset) + (mean - offset);
 }

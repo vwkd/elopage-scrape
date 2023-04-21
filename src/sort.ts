@@ -11,7 +11,7 @@
  * const b = a.getMinimum("x");
  * ```
  */
-Array.prototype.getMinimum = function (propName) {
+Array.prototype.getMinimum = function (propName: string) {
   if (this.length) {
     return this.reduce((prev, curr) => prev[propName] < curr[propName] ? prev : curr);
   } else {
@@ -32,7 +32,7 @@ Array.prototype.getMinimum = function (propName) {
  * a.removeElement(a);
  * ```
  */
-Array.prototype.removeElement = function (el) {
+Array.prototype.removeElement = function (el: unknown) {
   const index = this.indexOf(el);
   if (index !== -1) {
     this.splice(index, 1);
