@@ -23,7 +23,7 @@ Array.prototype.getMinimum = function (propName: string) {
 
 /**
  * Removes element from array
- * note: mutates array in place
+ * returns new array with elements copied
  * note: assumes elements are unique, deletes only first element
  *
  * For example, with object references
@@ -31,45 +31,49 @@ Array.prototype.getMinimum = function (propName: string) {
  * ```js
  * const a = [{x: 1}, {x: 2}, {x: 3}];
  * const b = a[2];
- * a.removeElement(a);
+ * const c = a.removeElement(a);
  * ```
  */
 Array.prototype.removeElement = function (el: unknown) {
   const index = this.indexOf(el);
-  if (index !== -1) {
-    this.splice(index, 1);
+  if (index != -1) {
+    return this.toSpliced(index, 1);
   }
   return this;
 };
 
 /**
- * Sort lessons in-place and add nesting level
- * beware: mutates the input!
+ * Sort lessons and add nesting level
  */
-export function sortLessons(lessons: Lessons) {
-  // assumes `"success": true` everywhere
-  const array = lessons.data.list;
+export function sortLessons(lessons: Lessons): Lessons {
+  // note: assumes valid data, e.g. `"success": true`
+  const unsorted = lessons.data.list;
 
   const currentParents = [null];
   // note: shouldn't be higher than 5 since Markdown only supports 6 header levels
   let currentLevel = 0;
 
-  const array_sorted: List[] = [];
+  const { sorted } = recurse({ unsorted, sorted: []});
 
-  recurse();
+  // clone lessons
+  const lessonsNew: Lessons = structuredClone(lessons);
+  lessonsNew.data.list = sorted;
 
-  if (array.length) {
-    throw new Error(`Unexpected '${array.length}' remaining items in array`);
-  }
+  return lessonsNew;
 
-  lessons.data.list = array_sorted;
-
-  function recurse() {
+  /**
+   * Creates sorted array in a recursive loop
+   * finds next element in unsorted array and adds it to sorted array
+   * removes it from copy of unsorted array
+   * recurses until unsorted array is empty and sorted array is full
+   * note: doesn't mutate original unsorted array, only empty sorted array
+   */
+  function recurse({ unsorted, sorted }: { unsorted: List[], sorted: List[] }): { unsorted: List[], sorted: List[] } {
     // console.debug(`currentLevel '${currentLevel}'`);
 
     // end recursion
-    if (!array.length) {
-      return;
+    if (!unsorted.length) {
+      return { unsorted, sorted };
     }
 
     // note: currentLevel must be >= 0
@@ -77,7 +81,7 @@ export function sortLessons(lessons: Lessons) {
 
     // console.debug(`parent_id '${parent_id}'`);
 
-    let header = array.filter((e) => e.parent_id === parent_id).getMinimum("position");
+    let header = unsorted.filter((e) => e.parent_id === parent_id).getMinimum("position");
 
     // is at leaf, no further nested header, go up once
     if (!header && currentLevel > 0) {
@@ -88,14 +92,14 @@ export function sortLessons(lessons: Lessons) {
 
       // console.debug(`Add '${header?.name}' ...`);
 
-      array_sorted.push(header);
+      sorted.push(header);
 
-      array.removeElement(header);
+      unsorted = unsorted.removeElement(header);
 
       currentLevel += 1;
       currentParents[currentLevel] = header.id;
     }
 
-    recurse();
+    return recurse({ unsorted, sorted });
   }
 }

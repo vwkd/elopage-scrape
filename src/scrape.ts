@@ -20,8 +20,8 @@ const course = await getCourse(course_session_id, TOKEN);
 await Deno.writeTextFile(COURSE_FILEPATH, JSON.stringify(course));
 
 console.info(`Scraping lesson index ...`);
-const lessons = await getLessons(course_session_id, TOKEN);
-sortLessons(lessons);
+const lessonsUnsorted = await getLessons(course_session_id, TOKEN);
+const lessons = sortLessons(lessonsUnsorted);
 await Deno.writeTextFile(LESSONS_FILEPATH, JSON.stringify(lessons));
 
 console.info(`Scraping lesson content ...`);
