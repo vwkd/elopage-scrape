@@ -1,6 +1,5 @@
 {
   "tasks": {
-    "parse": "deno run --allow-read --allow-write src/parse.ts",
-    "sort": "deno run --allow-read --allow-write src/sort.ts"
+    "parse": "deno run --allow-read --allow-write src/parse.ts"
   }
 }
