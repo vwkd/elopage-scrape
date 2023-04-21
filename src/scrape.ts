@@ -1,7 +1,7 @@
 import "$std/dotenv/load.ts";
 
-import { sortLessons } from "./sort.js";
-import { getContent, getCourse, getLessons } from "./api.js";
+import { sortLessons } from "./sort.ts";
+import { getContent, getCourse, getLessons } from "./api.ts";
 
 const START_URL = Deno.env.get("START_URL");
 const TOKEN = Deno.env.get("ACCESS_TOKEN");

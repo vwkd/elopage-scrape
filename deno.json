@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "scrape": "deno run --allow-env --allow-net --allow-read --allow-write src/scrape.js",
+    "scrape": "deno run --allow-env --allow-net --allow-read --allow-write src/scrape.ts",
     "parse": "deno run --allow-read --allow-write src/parse.ts"
   },
   "imports": {

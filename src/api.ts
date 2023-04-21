@@ -1,6 +1,6 @@
 import "$std/dotenv/load.ts";
 
-import { delay, random_number } from "./utils.js";
+import { delay, random_number } from "./utils.ts";
 
 const USER_AGENT = Deno.env.get("USER_AGENT");
 const DELAY = Deno.env.get("DELAY");
