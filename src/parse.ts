@@ -49,9 +49,10 @@ output += `# ${title}\n\n`;
 // note: assumes valid data, e.g. `"success": true`
 const lessonsArray = lessons.data.list;
 for (const lessonsObj of lessonsArray) {
-  const header = lessonsObj.name;
   const content_id = lessonsObj.content_page_id;
   const nesting_level = lessonsObj.nesting_level;
+  const active = lessonsObj.active;
+  const header = lessonsObj.name + (active ? "" : " [INACTIVE]");
 
   console.debug(`Adding lesson '${header}' ...`);
 
@@ -74,8 +75,11 @@ for (const lessonsObj of lessonsArray) {
     // note: always only 1 child
     const child = children[0];
     // todo: remove after verified
-    if (children.length != 1) {
-      console.error(`children more than 1: '${contentBlock.id}'`);
+    if (children.length > 1) {
+      console.warn(`WARNING: Choosing first child of more than 1 children in: '${contentBlock.id}'`);
+    } else if (children.length == 0) {
+      console.error(`ERROR: no children: '${contentBlock.id}'`);
+      continue;
     }
 
     const form = child.form;
@@ -84,7 +88,7 @@ for (const lessonsObj of lessonsArray) {
       const text = child.content.text;
 
       if (!text) {
-        console.warn(`missing text in '${child.id}'`);
+        console.warn(`WARNING: missing text in '${child.id}'`);
         continue;
       }
 
@@ -99,8 +103,11 @@ for (const lessonsObj of lessonsArray) {
       // todo: verify that there always is name and url
 
       // todo: remove after verified and noted
-      if (child.goods.length != 1) {
-        console.error(`goods more than 1: '${child.id}'`);
+      if (child.goods.length > 1) {
+        console.warn(`WARNING: Choosing first good of more than 1 goods in '${child.id}'`);
+      } else if (child.goods.length == 0) {
+        console.error(`ERROR: no goods: '${child.id}'`);
+        continue;
       }
 
       // todo: which filename?
@@ -108,7 +115,7 @@ for (const lessonsObj of lessonsArray) {
       const filename2 = child.goods[0].digital.file.name;
       // todo: remove after verified and noted
       if (filename !== filename2) {
-        console.error(`different filenames: '${filename}' vs. '${filename2}'`);
+        console.warn(`WARNING: different filenames: '${filename}' vs. '${filename2}'`);
       }
 
       // todo: which URL?
@@ -116,7 +123,7 @@ for (const lessonsObj of lessonsArray) {
       const url2 = child.goods[0].digital.file.icon;
       // todo: remove after verified and noted
       if (!url2.startsWith(url)) {
-        console.error(`different urls: '${url}' vs. '${url2}'`);
+        console.warn(`WARNING: different urls: '${url}' vs. '${url2}'`);
       }
 
       await download(url, filename, IMAGES_FOLDER);
@@ -124,8 +131,11 @@ for (const lessonsObj of lessonsArray) {
       // todo: verify that there always is name and url
 
       // todo: remove after verified and noted
-      if (child.goods.length != 1) {
-        console.error(`goods more than 1: '${child.id}'`);
+      if (child.goods.length > 1) {
+        console.warn(`WARNING: Choosing first good of more than 1 goods in '${child.id}'`);
+      } else if (child.goods.length == 0) {
+        console.error(`ERROR: no goods: '${child.id}'`);
+        continue;
       }
 
       const filename = child.goods[0].digital.wistia_data.name;
@@ -142,8 +152,11 @@ for (const lessonsObj of lessonsArray) {
       // todo: verify that there always is name and url
 
       // todo: remove after verified and noted
-      if (child.goods.length != 1) {
-        console.error(`goods more than 1: '${child.id}'`);
+      if (child.goods.length > 1) {
+        console.warn(`WARNING: Choosing first good of more than 1 goods in: '${child.id}'`);
+      } else if (child.goods.length == 0) {
+        console.error(`ERROR: no goods: '${child.id}'`);
+        continue;
       }
 
       const filename = child.goods[0].digital.file.name;
@@ -153,12 +166,12 @@ for (const lessonsObj of lessonsArray) {
       const url2 = child.goods[0].digital.file.icon;
       // todo: remove after verified and noted
       if (!url2.startsWith(url)) {
-        console.error(`different urls: '${url}' vs. '${url2}'`);
+        console.warn(`WARNING: different urls: '${url}' vs. '${url2}'`);
       }
 
       await download(url, filename, FILES_FOLDER);
     } else {
-      throw new Error(`unexpected content block form '${form}'`);
+      throw new Error(`ERROR: unexpected content block form '${form}'`);
     }
   }
 }
@@ -198,7 +211,7 @@ async function download(url: string, filename: string, foldername: string) {
   });
 
   if (!res.ok) {
-    console.error(`Skipping response that's not ok: '${res.status}' - '${res.statusText}'`);
+    console.error(`ERROR: Skipping response that's not ok: '${res.status}' - '${res.statusText}'`);
     return;
   }
 
