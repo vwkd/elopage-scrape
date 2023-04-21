@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
-dotenv.config()
+dotenv.config();
 
 import { writeFile } from "node:fs/promises";
-import { login } from "./login.js"
+import { login } from "./login.js";
 import { sortLessons } from "./sort.js";
-import { getLessons, getContent } from "./api.js";
+import { getContent, getLessons } from "./api.js";
 
 const START_URL = process.env.START_URL;
 
@@ -15,12 +15,12 @@ console.info(`Start scraping course '${START_URL}' ...`);
 
 const { token, course_session_id } = login();
 
-console.info(`Scraping lesson index ...`)
+console.info(`Scraping lesson index ...`);
 const lessons = await getLessons(course_session_id, token);
 sortLessons(lessons);
 await writeFile(LESSONS_FILEPATH, JSON.stringify(lessons));
 
-console.info(`Scraping lesson content ...`)
+console.info(`Scraping lesson content ...`);
 const content = [];
 const lessonsArray = lessons.data.list;
 for (const lessonsObj of lessonsArray) {
@@ -28,7 +28,7 @@ for (const lessonsObj of lessonsArray) {
   const lesson_id = lessonsObj.id;
   const content_page_id = lessonsObj.content_page_id;
   const active = lessonsObj.active;
-  
+
   if (!content_page_id) {
     console.debug(`Skipping section header '${title}'`);
     continue;

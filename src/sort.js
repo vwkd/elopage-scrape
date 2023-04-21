@@ -11,13 +11,13 @@
  * const b = a.getMinimum("x");
  * ```
  */
-Array.prototype.getMinimum = function(propName) {
+Array.prototype.getMinimum = function (propName) {
   if (this.length) {
     return this.reduce((prev, curr) => prev[propName] < curr[propName] ? prev : curr);
   } else {
     return undefined;
   }
-}
+};
 
 /**
  * Removes element from array
@@ -32,7 +32,7 @@ Array.prototype.getMinimum = function(propName) {
  * a.removeElement(a);
  * ```
  */
-Array.prototype.removeElement = function(el) {
+Array.prototype.removeElement = function (el) {
   const index = this.indexOf(el);
   if (index !== -1) {
     this.splice(index, 1);
@@ -69,14 +69,14 @@ export function sortLessons(lessons) {
     if (!array.length) {
       return;
     }
-    
+
     // note: currentLevel must be >= 0
     const parent_id = currentParents[currentLevel];
-    
+
     // console.debug(`parent_id '${parent_id}'`);
 
-    let header = array.filter(e => e.parent_id === parent_id).getMinimum("position");
-      
+    let header = array.filter((e) => e.parent_id === parent_id).getMinimum("position");
+
     // is at leaf, no further nested header, go up once
     if (!header && currentLevel > 0) {
       currentLevel -= 1;
@@ -93,7 +93,7 @@ export function sortLessons(lessons) {
       currentLevel += 1;
       currentParents[currentLevel] = header.id;
     }
-    
+
     recurse();
   }
 }

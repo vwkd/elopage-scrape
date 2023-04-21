@@ -17,9 +17,9 @@ const VIDEOS_FOLDER = "out/videos";
 const FILES_FOLDER = "out/files";
 
 // todo: use real title
-const TITLE = "PLACEHOLDER....."
+const TITLE = "PLACEHOLDER.....";
 
-console.info(`Creating course '${TITLE}' ...`)
+console.info(`Creating course '${TITLE}' ...`);
 
 await addHeader1(TITLE);
 
@@ -36,36 +36,36 @@ for (const lessonsObj of lessonsArray) {
   const title = lessonsObj.name;
   const content_id = lessonsObj.content_page_id;
   const nesting_level = lessonsObj.nesting_level;
-  
-  console.info(`Adding lesson '${title}' ...`)
-  
+
+  console.info(`Adding lesson '${title}' ...`);
+
   await addHeader2plus(title, nesting_level);
-  
+
   // section header
   if (!content_id) {
     continue;
   }
 
   // note: assumes unique `content_id` and `"success": true` everywhere
-  const contentObj = contentArray.find(contentObj => contentObj.data.id == content_id);
+  const contentObj = contentArray.find((contentObj) => contentObj.data.id == content_id);
 
   // todo: assumes lessons and content arrays are bijective (every entry in one maps exactly to unique entry in other)
 
   const contentBlocks = contentObj.data.content_blocks;
-  
+
   for (const contentBlock of contentBlocks) {
     const children = contentBlock.children;
 
     // note: there is always only 1
     const child = children[0];
-    
+
     // todo: remove after verified
     if (children.length != 1) {
       console.error(`children more than 1: '${contentBlock.id}'`);
     }
 
     const form = child.form;
-    
+
     if (form == "text") {
       await handleText(child);
     } else if (form == "picture") {
@@ -77,7 +77,6 @@ for (const lessonsObj of lessonsArray) {
     } else {
       throw new Error(`unexpected content block form '${form}'`);
     }
-
   }
 }
 
@@ -86,7 +85,6 @@ async function addHeader1(title: string) {
 
   await Deno.writeTextFile(OUTPUT_FILEPATH, header);
 }
-
 
 async function addHeader2plus(title: string, level: number) {
   const header = `##${"#".repeat(level)} ${title}\n\n`;
@@ -106,7 +104,7 @@ async function handleText(child) {
   const html_fixed = text.replace(/<strong>(<br>)+<\/strong>/g, "$1");
 
   const md_ugly = turndownService.turndown(html_fixed);
-  const md = format(md_ugly, { parser: "markdown" });  
+  const md = format(md_ugly, { parser: "markdown" });
 
   const output = md + `\n`;
 
@@ -124,7 +122,7 @@ function handlePicture(child) {
   const filename = child.goods[0].digital.name;
 
   // todo: remove after verified and noted
-  const filename2 = child.goods[0].digital.file.name
+  const filename2 = child.goods[0].digital.file.name;
   if (filename !== filename2) {
     console.error(`different filenames: '${filename}' vs '${filename2}'`);
   }
@@ -142,7 +140,6 @@ function handleVideo(child) {
   if (child.goods[0].digital.wistia_data.assets.length != 1) {
     console.error(`assets more than 1: '${child.goods[0].digital.wistia_data.id}'`);
   }
-
 
   const filename = child.goods[0].digital.wistia_data.name;
   //child.goods[0].digital.file.name;

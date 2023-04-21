@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config()
+dotenv.config();
 
 import puppeteer from "puppeteer";
 
@@ -19,7 +19,7 @@ export async function login() {
     defaultViewport: {
       width: Number(VIEWPORT_WIDTH),
       height: Number(VIEWPORT_HEIGHT),
-    }
+    },
   });
   const page = await browser.newPage();
   await page.setUserAgent(USER_AGENT);
@@ -28,11 +28,13 @@ export async function login() {
 
   await page.type("#sign-in-email-text-field", USERNAME);
   await page.type("#sign-in-password-text-field", PASSWORD);
-  await page.click("div.auth-form > div.elo-btn-container:nth-child(4) > button");
+  await page.click(
+    "div.auth-form > div.elo-btn-container:nth-child(4) > button",
+  );
   await page.waitForSelector("div.content-page");
 
   const cookies = await page.cookies();
-  const token = cookies.find(e => e.name == "p_access_token")?.value;
+  const token = cookies.find((e) => e.name == "p_access_token")?.value;
   console.info(`Got access_token '${token}'`);
 
   const url = new URL(page.url());
@@ -44,5 +46,5 @@ export async function login() {
   return {
     token,
     course_session_id,
-  }
+  };
 }
