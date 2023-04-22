@@ -197,32 +197,36 @@ async function download(url: string, filename: string, foldername: string) {
 
   await delay(random_number(DELAY, DELAY_OFFSET));
 
-  const res = await fetch(url, {
-    "headers": {
-      "accept": "application/json, text/plain, */*",
-      "accept-encoding": "gzip, deflate, br",
-      "accept-language": "en-GB,en;q=0.5",
-      "referer": "https://elopage.com/",
-      "sec-fetch-dest": "image",
-      "sec-fetch-mode": "no-cors",
-      "sec-fetch-site": "cross-site",
-      "user-agent": USER_AGENT,
-    },
-  });
-
-  if (!res.ok) {
-    console.error(`ERROR: Skipping response that's not ok: '${res.status}' - '${res.statusText}'`);
-    return;
-  }
-
-  const file = await Deno.create(filepath);
-
   try {
-    await res.body.pipeTo(file.writable);
+    const res = await fetch(url, {
+      "headers": {
+        "accept": "application/json, text/plain, */*",
+        "accept-encoding": "gzip, deflate, br",
+        "accept-language": "en-GB,en;q=0.5",
+        "referer": "https://elopage.com/",
+        "sec-fetch-dest": "image",
+        "sec-fetch-mode": "no-cors",
+        "sec-fetch-site": "cross-site",
+        "user-agent": USER_AGENT,
+      },
+    });
+
+    if (!res.ok) {
+      console.error(`ERROR: Skipping unsuccessful response: '${res.status}' - '${res.statusText}'`);
+      return;
+    }
+
+    const file = await Deno.create(filepath);
+
+    try {
+      await res.body.pipeTo(file.writable);
+    } catch (e) {
+      console.error(`ERROR: Skipping interrupted download: '${e}'`);
+      await Deno.remove(filepath);
+    } finally {
+      file.close();
+    }
   } catch (e) {
-    console.error(`ERROR: Skipping interrupted download: '${e}'`);
-    await Deno.remove(filepath);
-  } finally {
-    file.close();
+    console.error(`ERROR: Skipping failed response: '${e}'`);
   }
 }
