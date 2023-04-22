@@ -46,7 +46,6 @@ Array.prototype.removeElement = function (el: unknown) {
  * Sort lessons and add nesting level
  */
 export function sortLessons(lessons: Lessons): Lessons {
-  // note: assumes valid data, e.g. `"success": true`
   const unsorted = lessons.data.list;
 
   const { sorted } = sortArray({ unsorted, sorted: [], currentParents: [null], currentLevel: 0 });

@@ -1,8 +1,8 @@
 import "$std/dotenv/load.ts";
 
-import type { Content } from "./types/content.ts";
-import type { Course } from "./types/course.ts";
-import type { Lessons } from "./types/lessons.ts";
+import type { ContentResponse } from "./types/content.ts";
+import type { CourseResponse } from "./types/course.ts";
+import type { LessonsResponse } from "./types/lessons.ts";
 
 import { delay, random_number } from "./utils.ts";
 
@@ -22,7 +22,11 @@ export async function getCourse(course_session_id: string, token: string) {
   await delay(random_number(DELAY, DELAY_OFFSET));
 
   const courseResponse = await makeRequest(courseUrl, token);
-  const course: Course = await courseResponse.json();
+  const course: CourseResponse = await courseResponse.json();
+
+  if (!course.success) {
+    throw new Error(`Couldn't get course: ${course.error.message}`);
+  }
 
   return course;
 }
@@ -39,8 +43,12 @@ export async function getLessons(course_session_id: string, token: string) {
   await delay(random_number(DELAY, DELAY_OFFSET));
 
   const lessonsResponse = await makeRequest(lessonsUrl, token);
-  const lessons: Lessons = await lessonsResponse.json();
+  const lessons: LessonsResponse = await lessonsResponse.json();
   // console.debug(`Got ${lessons.data.total_count} lessons`);
+
+  if (!lessons.success) {
+    throw new Error(`Couldn't get lessons: ${lessons.error.message}`);
+  }
 
   return lessons;
 }
@@ -57,7 +65,11 @@ export async function getContent(lesson_id: string, content_page_id: string, cou
   await delay(random_number(DELAY, DELAY_OFFSET));
 
   const contentResponse = await makeRequest(contentUrl, token);
-  const content: Content = await contentResponse.json();
+  const content: ContentResponse = await contentResponse.json();
+
+  if (!content.success) {
+    throw new Error(`Couldn't get content: ${content.error.message}`);
+  }
 
   return content;
 }

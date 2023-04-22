@@ -40,14 +40,12 @@ const course: Course = JSON.parse(courseJson);
 const lessons: Lessons = JSON.parse(lessonsJson);
 const contentArray: Content[] = JSON.parse(contentJson);
 
-// note: assumes valid data, e.g. `"success": true`
 const title = course.data.product.name;
 
 console.info(`Start parsing course '${title}' ...`);
 
 output += `# ${title}\n`;
 
-// note: assumes valid data, e.g. `"success": true`
 const lessonsArray = lessons.data.list;
 for (const lessonsObj of lessonsArray) {
   const content_id = lessonsObj.content_page_id;
@@ -66,7 +64,6 @@ for (const lessonsObj of lessonsArray) {
 
   // get content of lesson
   // note: assumes lessons array and content array are bijective, i.e. every entry in one maps exactly to unique entry in other, e.g. unique `content_id`
-  // note: assumes valid data, e.g. `"success": true`
   const contentObj = contentArray.find((contentObj) => contentObj.data.id == content_id)!;
 
   const contentBlocks = contentObj.data.content_blocks;
