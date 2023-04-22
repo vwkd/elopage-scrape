@@ -7,9 +7,9 @@ import type { Content } from "./types/content.ts";
 const START_URL = Deno.env.get("START_URL");
 const TOKEN = Deno.env.get("ACCESS_TOKEN");
 
-const COURSE_FILEPATH = "course.json";
-const LESSONS_FILEPATH = "lessons.json";
-const CONTENT_FILEPATH = "content.json";
+const COURSE_FILEPATH = "tmp/course.json";
+const LESSONS_FILEPATH = "tmp/lessons.json";
+const CONTENT_FILEPATH = "tmp/content.json";
 
 const url = new URL(START_URL);
 const course_session_id = url.searchParams.get("course_session_id");

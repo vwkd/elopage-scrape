@@ -14,9 +14,9 @@ const USER_AGENT = Deno.env.get("USER_AGENT");
 const DELAY = Deno.env.get("DELAY");
 const DELAY_OFFSET = Deno.env.get("DELAY_OFFSET");
 
-const COURSE_FILEPATH = "course.json";
-const LESSONS_FILEPATH = "lessons.json";
-const CONTENT_FILEPATH = "content.json";
+const COURSE_FILEPATH = "tmp/course.json";
+const LESSONS_FILEPATH = "tmp/lessons.json";
+const CONTENT_FILEPATH = "tmp/content.json";
 
 const OUTPUT_FOLDER = "out";
 const MD_FILENAME = "text.md";
