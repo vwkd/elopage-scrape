@@ -49,57 +49,63 @@ export function sortLessons(lessons: Lessons): Lessons {
   // note: assumes valid data, e.g. `"success": true`
   const unsorted = lessons.data.list;
 
-  const currentParents = [null];
-  // note: shouldn't be higher than 5 since Markdown only supports 6 header levels
-  let currentLevel = 0;
-
-  const { sorted } = recurse({ unsorted, sorted: []});
+  const { sorted } = sortArray({ unsorted, sorted: [], currentParents: [null], currentLevel: 0 });
 
   // clone lessons
   const lessonsNew: Lessons = structuredClone(lessons);
   lessonsNew.data.list = sorted;
 
   return lessonsNew;
+}
 
-  /**
-   * Creates sorted array in a recursive loop
-   * finds next element in unsorted array and adds it to sorted array
-   * removes it from copy of unsorted array
-   * recurses until unsorted array is empty and sorted array is full
-   * note: doesn't mutate original unsorted array, only empty sorted array
-   */
-  function recurse({ unsorted, sorted }: { unsorted: List[], sorted: List[] }): { unsorted: List[], sorted: List[] } {
-    // console.debug(`currentLevel '${currentLevel}'`);
+// note: shouldn't be higher than 5 since Markdown only supports 6 header levels
+interface sortArrayArguments {
+  unsorted: List[];
+  sorted: List[];
+  currentParents: (string | null)[];
+  currentLevel: number;
+}
 
-    // end recursion
-    if (!unsorted.length) {
-      return { unsorted, sorted };
-    }
+/**
+ * Creates sorted array
+ *
+ * finds next header in unsorted array and adds it to sorted array
+ * removes it from copy of unsorted array
+ * loops until copy of unsorted array is empty and sorted array is full
+ * note: uses recursion and mutates inputs except original unsorted array
+ * note: in initial argument sorted array must be `[]`, current parent ids must be [`null`], current nesting level must be `0`
+ */
+function sortArray({ unsorted, sorted, currentParents, currentLevel }: sortArrayArguments): sortArrayArguments {
+  // console.debug(`currentLevel '${currentLevel}'`);
 
-    // note: currentLevel must be >= 0
-    const parent_id = currentParents[currentLevel];
-
-    // console.debug(`parent_id '${parent_id}'`);
-
-    let header = unsorted.filter((e) => e.parent_id === parent_id).getMinimum("position");
-
-    // is at leaf, no further nested header, go up once
-    if (!header && currentLevel > 0) {
-      currentLevel -= 1;
-    // continue going down
-    } else {
-      header.nesting_level = currentLevel;
-
-      // console.debug(`Add '${header?.name}' ...`);
-
-      sorted.push(header);
-
-      unsorted = unsorted.removeElement(header);
-
-      currentLevel += 1;
-      currentParents[currentLevel] = header.id;
-    }
-
-    return recurse({ unsorted, sorted });
+  // end recursion
+  if (!unsorted.length) {
+    return { unsorted, sorted, currentParents, currentLevel };
   }
+
+  // note: currentLevel must be >= 0
+  const parent_id = currentParents[currentLevel];
+
+  // console.debug(`parent_id '${parent_id}'`);
+
+  let header = unsorted.filter((e) => e.parent_id === parent_id).getMinimum("position");
+
+  // is at leaf, no further nested header, go up once
+  if (!header && currentLevel > 0) {
+    currentLevel -= 1;
+  // continue going down
+  } else {
+    header.nesting_level = currentLevel;
+
+    // console.debug(`Add '${header?.name}' ...`);
+
+    sorted.push(header);
+
+    unsorted = unsorted.removeElement(header);
+
+    currentLevel += 1;
+    currentParents[currentLevel] = header.id;
+  }
+
+  return sortArray({ unsorted, sorted, currentParents, currentLevel });
 }
