@@ -55,7 +55,7 @@ for (const lessonsObj of lessonsArray) {
   const active = lessonsObj.active;
   const header = lessonsObj.name + (active ? "" : " [INACTIVE]");
 
-  console.debug(`Adding lesson '${header}' ...`);
+  // console.debug(`Adding lesson '${header}' ...`);
 
   output += `\n##${"#".repeat(nesting_level)} ${header}\n`;
 
@@ -77,9 +77,9 @@ for (const lessonsObj of lessonsArray) {
     const child = children[0];
     // todo: remove after verified
     if (children.length > 1) {
-      console.warn(`WARNING: Choosing first child of more than 1 children in: '${contentBlock.id}'`);
+      console.warn(`WARNING: Choosing first of multiple children in '${contentBlock.id}'`);
     } else if (children.length == 0) {
-      console.error(`ERROR: no children: '${contentBlock.id}'`);
+      console.error(`ERROR: Skipping due to no children in '${contentBlock.id}'`);
       continue;
     }
 
@@ -89,7 +89,7 @@ for (const lessonsObj of lessonsArray) {
       const text = child.content.text;
 
       if (!text) {
-        console.warn(`WARNING: missing text in '${child.id}'`);
+        console.error(`ERROR: Skipping due to no text in '${child.id}'`);
         continue;
       }
 
@@ -106,30 +106,22 @@ for (const lessonsObj of lessonsArray) {
 
       // todo: remove after verified and noted
       if (child.goods.length > 1) {
-        console.warn(`WARNING: Choosing first good of more than 1 goods in '${child.id}'`);
+        console.warn(`WARNING: Choosing first of multiple goods in '${child.id}'`);
       } else if (child.goods.length == 0) {
-        console.error(`ERROR: no goods: '${child.id}'`);
+        console.error(`ERROR: Skipping due to no goods in '${child.id}'`);
         continue;
       }
 
       // todo: which filename?
       const filename = child.goods[0].digital.name;
-      const filename2 = child.goods[0].digital.file.name;
-      // todo: remove after verified and noted
-      if (filename !== filename2) {
-        console.warn(`WARNING: different filenames: '${filename}' vs. '${filename2}'`);
-      }
+      // const filename2 = child.goods[0].digital.file.name;
 
       const linkpath = join(IMAGES_SUBFOLDER, encodeURIComponent(filename));
       output += `\n![${filename}](./${linkpath})\n`;
 
       // todo: which URL?
       const url = child.cover.url;
-      const url2 = child.goods[0].digital.file.icon;
-      // todo: remove after verified and noted
-      if (!url2.startsWith(url)) {
-        console.warn(`WARNING: different urls: '${url}' vs. '${url2}'`);
-      }
+      // const url2 = child.goods[0].digital.file.icon;
 
       const filepath = join(OUTPUT_FOLDER, IMAGES_SUBFOLDER, filename);
       await download(url, filepath);
@@ -138,9 +130,9 @@ for (const lessonsObj of lessonsArray) {
 
       // todo: remove after verified and noted
       if (child.goods.length > 1) {
-        console.warn(`WARNING: Choosing first good of more than 1 goods in '${child.id}'`);
+        console.warn(`WARNING: Choosing first of multiple goods in '${child.id}'`);
       } else if (child.goods.length == 0) {
-        console.error(`ERROR: no goods: '${child.id}'`);
+        console.error(`ERROR: Skipping due to no goods in '${child.id}'`);
         continue;
       }
 
@@ -163,9 +155,9 @@ for (const lessonsObj of lessonsArray) {
 
       // todo: remove after verified and noted
       if (child.goods.length > 1) {
-        console.warn(`WARNING: Choosing first good of more than 1 goods in: '${child.id}'`);
+        console.warn(`WARNING: Choosing first of multiple goods in '${child.id}'`);
       } else if (child.goods.length == 0) {
-        console.error(`ERROR: no goods: '${child.id}'`);
+        console.error(`ERROR: Skipping due to no goods in '${child.id}'`);
         continue;
       }
 
@@ -176,16 +168,12 @@ for (const lessonsObj of lessonsArray) {
 
       // todo: which URL?
       const url = child.goods[0].digital.file.original;
-      const url2 = child.goods[0].digital.file.icon;
-      // todo: remove after verified and noted
-      if (!url2.startsWith(url)) {
-        console.warn(`WARNING: different urls: '${url}' vs. '${url2}'`);
-      }
+      // const url2 = child.goods[0].digital.file.icon;
 
       const filepath = join(OUTPUT_FOLDER, FILES_SUBFOLDER, filename);
       await download(url, filepath);
     } else {
-      throw new Error(`ERROR: unexpected content block form '${form}'`);
+      throw new Error(`ERROR: Unexpected content block form '${form}'`);
     }
   }
 }
@@ -202,10 +190,10 @@ async function download(url: string, filepath: string) {
     isReadable: true,
     isFile: true,
   })) {
-    console.debug(`Skip download already exists '${filepath}'`);
+    // console.debug(`Skip download already exists '${filepath}'`);
     return;
   } else {
-    console.debug(`Downloading '${filepath}' ...`);
+    // console.debug(`Downloading '${filepath}' ...`);
   }
 
   await delay(random_number(DELAY, DELAY_OFFSET));
@@ -225,7 +213,7 @@ async function download(url: string, filepath: string) {
     });
 
     if (!res.ok) {
-      console.error(`ERROR: Skipping unsuccessful response: '${res.status}' - '${res.statusText}'`);
+      console.error(`ERROR: Skipping ${res.status} response in '${filepath}'`);
       return;
     }
 
@@ -234,12 +222,12 @@ async function download(url: string, filepath: string) {
     try {
       await res.body.pipeTo(file.writable);
     } catch (e) {
-      console.error(`ERROR: Skipping interrupted download: '${e}'`);
+      console.error(`ERROR: Skipping interrupted download in '${filepath}': '${e}'`);
       await Deno.remove(filepath);
     } finally {
       file.close();
     }
   } catch (e) {
-    console.error(`ERROR: Skipping failed response: '${e}'`);
+    console.error(`ERROR: Skipping failed response in '${filepath}': '${e}'`);
   }
 }
