@@ -25,6 +25,8 @@ Note: The resulting markdown may have imperfections like empty hyperlinks, empty
 
 ## Usage
 
+### Configure
+
 - set environmental variables or create `.env` file
 
 ```
@@ -35,14 +37,21 @@ DELAY=5000
 DELAY_OFFSET=2000
 ```
 
-- scrape
+### Scrape
 
 ```sh
 deno task scrape
 ```
 
-- parse
+- scrapes raw content
+- note: this might take some time, around `total_count` of lessons times `DELAY` seconds
+
+### Parse
 
 ```sh
 deno task parse
 ```
+
+- parses raw content, downloads linked files, and writes markdown file
+- note: existing files aren't overwritten, i.e. if some downloads fail can simply rerun until has downloaded all
+- note: if downloads error with 403 then links in raw content expired, can rerun `scrape` to get fresh raw content and then run `parse` again
