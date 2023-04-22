@@ -191,7 +191,7 @@ await Deno.writeTextFile(OUTPUT_FILEPATH, output);
 
 /**
  * Download file and streamingly write
- * note: delayed by delay +- random offset
+ * - note: delayed by delay +- random offset
  */
 async function download(url: string, filepath: string) {
   if (await exists(filepath, {

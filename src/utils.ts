@@ -9,7 +9,7 @@ export function delay(ms: number) {
 
 /**
  * Generates random number around mean between offset
- * is computed formula `Math.random() * (max - min) + min`
+ * - is computed formula `Math.random() * (max - min) + min`
  */
 export function random_number(mean: number, offset: number) {
   return Math.random() * (2 * offset) + (mean - offset);

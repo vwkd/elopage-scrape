@@ -2,9 +2,9 @@ import type { Lessons, List } from "./types/lessons.ts";
 
 /**
  * Gets minimum object element of array with respect to property
- * note: assumes elements are objects, doesn't verify
- * note: assumes property exists, doesn't verify
- * note: assumes property is unique, i.e. no two identical values
+ * - note: assumes elements are objects, doesn't verify
+ * - note: assumes property exists, doesn't verify
+ * - note: assumes property is unique, i.e. no two identical values
  *
  * For example
  *
@@ -23,8 +23,8 @@ Array.prototype.getMinimum = function (propName: string) {
 
 /**
  * Removes element from array
- * returns new array with elements copied
- * note: assumes elements are unique, deletes only first element
+ * - returns new array with elements copied
+ * - note: assumes elements are unique, deletes only first element
  *
  * For example, with object references
  *
@@ -69,11 +69,11 @@ interface sortArrayArguments {
 /**
  * Creates sorted array
  *
- * finds next header in unsorted array and adds it to sorted array
- * removes it from copy of unsorted array
- * loops until copy of unsorted array is empty and sorted array is full
- * note: uses recursion and mutates inputs except original unsorted array
- * note: in initial argument sorted array must be `[]`, current parent ids must be [`null`], current nesting level must be `0`
+ * - finds next header in unsorted array and adds it to sorted array
+ * - removes it from copy of unsorted array
+ * - loops until copy of unsorted array is empty and sorted array is full
+ * - note: uses recursion and mutates inputs except original unsorted array
+ * - note: in initial argument sorted array must be `[]`, current parent ids must be [`null`], current nesting level must be `0`
  */
 function sortArray({ unsorted, sorted, currentParents, currentLevel }: sortArrayArguments): sortArrayArguments {
   // console.debug(`currentLevel '${currentLevel}'`);

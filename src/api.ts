@@ -12,7 +12,7 @@ const DELAY_OFFSET = Deno.env.get("DELAY_OFFSET");
 
 /**
  * Get course details from API
- * note: delayed by delay +- random offset
+ * - note: delayed by delay +- random offset
  */
 export async function getCourse(course_session_id: string, token: string) {
   // console.debug(`Fetching course from API ...`);
@@ -29,7 +29,7 @@ export async function getCourse(course_session_id: string, token: string) {
 
 /**
  * Get lessons from API
- * note: delayed by delay +- random offset
+ * - note: delayed by delay +- random offset
  */
 export async function getLessons(course_session_id: string, token: string) {
   // console.debug(`Fetching lessons from API ...`);
@@ -47,7 +47,7 @@ export async function getLessons(course_session_id: string, token: string) {
 
 /**
  * Get content of lesson from API
- * note: delayed by delay +- random offset
+ * - note: delayed by delay +- random offset
  */
 export async function getContent(lesson_id: string, content_page_id: string, course_session_id: string, token: string) {
   // console.debug(`Fetching content '${content_page_id}' of lesson '${lesson_id}' from API ...`);
