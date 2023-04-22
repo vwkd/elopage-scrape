@@ -216,6 +216,13 @@ async function download(url: string, filename: string, foldername: string) {
   }
 
   const file = await Deno.create(filepath);
-  await res.body.pipeTo(file.writable);
-  file.close();
+
+  try {
+    await res.body.pipeTo(file.writable);
+  } catch (e) {
+    console.error(`ERROR: Skipping interrupted download: '${e}'`);
+    await Deno.remove(filepath);
+  } finally {
+    file.close();
+  }
 }
