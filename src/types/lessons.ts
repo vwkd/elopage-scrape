@@ -24,7 +24,7 @@ export interface List {
   content_page_before_id: number | null;
   content_page_id: number | null;
   duration: null;
-  duration_type: DurationType;
+  duration_type: string;
   end_date: null;
   fb_comments_allowed: boolean;
   fb_url: string;
@@ -46,13 +46,9 @@ export interface List {
   quiz_id: null;
   static: boolean;
   with_duration: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
   nesting_level: number;
-}
-
-export enum DurationType {
-  Hour = "hour",
 }
 
 export interface LessonSettings {

@@ -12,12 +12,12 @@ export interface Course {
 export interface Data {
   id: number;
   owner: Owner;
-  paid_date: string;
+  paid_date: Date;
   publish_state: string;
   payment_state: string;
   duration: number;
-  subscribed_from: string;
-  subscribed_till: string;
+  subscribed_from: Date;
+  subscribed_till: Date;
   lifetime: boolean;
   over_by_time: boolean;
   notify_about_drip_in: boolean;
@@ -30,8 +30,8 @@ export interface Data {
   order: Order;
   seller: Seller;
   product: Product;
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
   sellable_id: number;
   course_theme: CourseTheme;
 }
@@ -42,13 +42,13 @@ export interface CourseTheme {
   form: string;
   prefs: CourseThemePrefs;
   seller_id: number;
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface CourseThemePrefs {
   css: string;
-  lesson: { [key: string]: string };
+  lesson: Lesson;
   full_width: boolean;
   link_color: string;
   button_font: string;
@@ -57,7 +57,7 @@ export interface CourseThemePrefs {
   button_color: string;
   button_style: string;
   show_overview: boolean;
-  course_overview: { [key: string]: string };
+  course_overview: CourseOverview;
   active_link_color: string;
   button_font_color: string;
   show_lesson_banner: boolean;
@@ -66,6 +66,49 @@ export interface CourseThemePrefs {
   top_navigation_enabled: boolean;
   show_lesson_banner_text: boolean;
   bottom_navigation_enabled: boolean;
+}
+
+export interface CourseOverview {
+  banner: string;
+  banner_font: string;
+  banner_size: string;
+  banner_color: string;
+  banner_style: string;
+  banner_opacity: string;
+  banner_overlay: string;
+  overview_title: string;
+  overview_items_font: string;
+  overview_items_size: string;
+  overview_title_font: string;
+  overview_title_size: string;
+  overview_items_color: string;
+  overview_items_style: string;
+  overview_title_color: string;
+  overview_title_style: string;
+  overview_items_background: string;
+}
+
+export interface Lesson {
+  banner: string;
+  banner_font: string;
+  banner_size: string;
+  banner_color: string;
+  banner_style: string;
+  sidebar_font: string;
+  sidebar_size: string;
+  progress_font: string;
+  progress_size: string;
+  sidebar_style: string;
+  banner_opacity: string;
+  banner_overlay: string;
+  progress_color: string;
+  progress_style: string;
+  sidebar_position: string;
+  sidebar_background: string;
+  sidebar_font_color: string;
+  progress_background: string;
+  progress_font_color: string;
+  sidebar_active_color: string;
 }
 
 export interface Order {
@@ -141,8 +184,8 @@ export interface Cover {
   uuid: string;
   video_link: null;
   voucher_template: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface File {
