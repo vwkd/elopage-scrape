@@ -18,10 +18,11 @@ const COURSE_FILEPATH = "course.json";
 const LESSONS_FILEPATH = "lessons.json";
 const CONTENT_FILEPATH = "content.json";
 
-const OUTPUT_FILEPATH = "out/text.md";
-const IMAGES_FOLDER = "out/images";
-const VIDEOS_FOLDER = "out/videos";
-const FILES_FOLDER = "out/files";
+const OUTPUT_FOLDER = "out";
+const MD_FILENAME = "text.md";
+const IMAGES_SUBFOLDER = "images";
+const VIDEOS_SUBFOLDER = "videos";
+const FILES_SUBFOLDER = "files";
 
 const turndownService = new TurndownService({
   headingStyle: "atx",
@@ -44,7 +45,7 @@ const title = course.data.product.name;
 
 console.info(`Start parsing course '${title}' ...`);
 
-output += `# ${title}\n\n`;
+output += `# ${title}\n`;
 
 // note: assumes valid data, e.g. `"success": true`
 const lessonsArray = lessons.data.list;
@@ -56,7 +57,7 @@ for (const lessonsObj of lessonsArray) {
 
   console.debug(`Adding lesson '${header}' ...`);
 
-  output += `##${"#".repeat(nesting_level)} ${header}\n\n`;
+  output += `\n##${"#".repeat(nesting_level)} ${header}\n`;
 
   // skip section header
   if (!content_id) {
@@ -98,7 +99,8 @@ for (const lessonsObj of lessonsArray) {
       const md_ugly = turndownService.turndown(html_fixed);
       const md = format(md_ugly, { parser: "markdown" });
 
-      output += md + `\n`;
+      // note: prettier already adds one trailing newline
+      output += `\n${md}`;
     } else if (form == "picture") {
       // todo: verify that there always is name and url
 
@@ -117,10 +119,9 @@ for (const lessonsObj of lessonsArray) {
       if (filename !== filename2) {
         console.warn(`WARNING: different filenames: '${filename}' vs. '${filename2}'`);
       }
-      const filepath = join(IMAGES_FOLDER, filename);
 
-      // todo: alt tag?
-      output += `\n![](${filepath})\n`;
+      const linkpath = join(IMAGES_SUBFOLDER, encodeURIComponent(filename));
+      output += `\n![${filename}](./${linkpath})\n`;
 
       // todo: which URL?
       const url = child.cover.url;
@@ -130,6 +131,7 @@ for (const lessonsObj of lessonsArray) {
         console.warn(`WARNING: different urls: '${url}' vs. '${url2}'`);
       }
 
+      const filepath = join(OUTPUT_FOLDER, IMAGES_SUBFOLDER, filename);
       await download(url, filepath);
     } else if (form == "video") {
       // todo: verify that there always is name and url
@@ -144,10 +146,9 @@ for (const lessonsObj of lessonsArray) {
 
       const filename = child.goods[0].digital.wistia_data.name;
       //child.goods[0].digital.file.name;
-      const filepath = join(VIDEOS_FOLDER, filename);
 
-      // todo: alt tag?
-      output += `\n![](${filepath})\n`;
+      const linkpath = join(VIDEOS_SUBFOLDER, encodeURIComponent(filename));
+      output += `\n![${filename}](./${linkpath})\n`;
 
       const asset = child.goods[0].digital.wistia_data.assets.find(a => a.type == "OriginalFile");
       const url = asset.url;
@@ -155,6 +156,7 @@ for (const lessonsObj of lessonsArray) {
       // todo: get thumbnail if available
       //child.goods[0].digital.file....
 
+      const filepath = join(OUTPUT_FOLDER, VIDEOS_SUBFOLDER, filename);
       await download(url, filepath);
     } else if (form == "file") {
       // todo: verify that there always is name and url
@@ -168,9 +170,9 @@ for (const lessonsObj of lessonsArray) {
       }
 
       const filename = child.goods[0].digital.file.name;
-      const filepath = join(FILES_FOLDER, filename);
 
-      output += `\n[${filename}](${filepath})\n`;
+      const linkpath = join(FILES_SUBFOLDER, encodeURIComponent(filename));
+      output += `\n[${filename}](./${linkpath})\n`;
 
       // todo: which URL?
       const url = child.goods[0].digital.file.original;
@@ -180,6 +182,7 @@ for (const lessonsObj of lessonsArray) {
         console.warn(`WARNING: different urls: '${url}' vs. '${url2}'`);
       }
 
+      const filepath = join(OUTPUT_FOLDER, FILES_SUBFOLDER, filename);
       await download(url, filepath);
     } else {
       throw new Error(`ERROR: unexpected content block form '${form}'`);
@@ -187,7 +190,8 @@ for (const lessonsObj of lessonsArray) {
   }
 }
 
-await Deno.writeTextFile(OUTPUT_FILEPATH, output);
+const filepath = join(OUTPUT_FOLDER, MD_FILENAME);
+await Deno.writeTextFile(filepath, output);
 
 /**
  * Download file and streamingly write
