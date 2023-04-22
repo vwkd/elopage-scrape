@@ -117,6 +117,10 @@ for (const lessonsObj of lessonsArray) {
       if (filename !== filename2) {
         console.warn(`WARNING: different filenames: '${filename}' vs. '${filename2}'`);
       }
+      const filepath = join(IMAGES_FOLDER, filename);
+
+      // todo: alt tag?
+      output += `\n![](${filepath})\n`;
 
       // todo: which URL?
       const url = child.cover.url;
@@ -126,7 +130,7 @@ for (const lessonsObj of lessonsArray) {
         console.warn(`WARNING: different urls: '${url}' vs. '${url2}'`);
       }
 
-      await download(url, filename, IMAGES_FOLDER);
+      await download(url, filepath);
     } else if (form == "video") {
       // todo: verify that there always is name and url
 
@@ -140,6 +144,10 @@ for (const lessonsObj of lessonsArray) {
 
       const filename = child.goods[0].digital.wistia_data.name;
       //child.goods[0].digital.file.name;
+      const filepath = join(VIDEOS_FOLDER, filename);
+
+      // todo: alt tag?
+      output += `\n![](${filepath})\n`;
 
       const asset = child.goods[0].digital.wistia_data.assets.find(a => a.type == "OriginalFile");
       const url = asset.url;
@@ -147,7 +155,7 @@ for (const lessonsObj of lessonsArray) {
       // todo: get thumbnail if available
       //child.goods[0].digital.file....
 
-      await download(url, filename, VIDEOS_FOLDER);
+      await download(url, filepath);
     } else if (form == "file") {
       // todo: verify that there always is name and url
 
@@ -160,6 +168,9 @@ for (const lessonsObj of lessonsArray) {
       }
 
       const filename = child.goods[0].digital.file.name;
+      const filepath = join(FILES_FOLDER, filename);
+
+      output += `\n[${filename}](${filepath})\n`;
 
       // todo: which URL?
       const url = child.goods[0].digital.file.original;
@@ -169,7 +180,7 @@ for (const lessonsObj of lessonsArray) {
         console.warn(`WARNING: different urls: '${url}' vs. '${url2}'`);
       }
 
-      await download(url, filename, FILES_FOLDER);
+      await download(url, filepath);
     } else {
       throw new Error(`ERROR: unexpected content block form '${form}'`);
     }
@@ -182,17 +193,15 @@ await Deno.writeTextFile(OUTPUT_FILEPATH, output);
  * Download file and streamingly write
  * note: delayed by delay +- random offset
  */
-async function download(url: string, filename: string, foldername: string) {
-  const filepath = join(foldername, filename);
-
+async function download(url: string, filepath: string) {
   if (await exists(filepath, {
     isReadable: true,
     isFile: true,
   })) {
-    console.debug(`Skip download already exists '${filename}'`);
+    console.debug(`Skip download already exists '${filepath}'`);
     return;
   } else {
-    console.debug(`Downloading '${filename}' ...`);
+    console.debug(`Downloading '${filepath}' ...`);
   }
 
   await delay(random_number(DELAY, DELAY_OFFSET));
