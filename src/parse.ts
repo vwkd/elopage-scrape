@@ -24,6 +24,10 @@ const IMAGES_SUBFOLDER = "images";
 const VIDEOS_SUBFOLDER = "videos";
 const FILES_SUBFOLDER = "files";
 
+if (!USER_AGENT || !DELAY || !DELAY_OFFSET) {
+  throw new Error(`Necessary environmental variables not set.`);
+}
+
 const turndownService = new TurndownService({
   headingStyle: "atx",
   hr: "---",
