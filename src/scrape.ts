@@ -1,5 +1,6 @@
 import "$std/dotenv/load.ts";
 import { join } from "$std/path/mod.ts";
+import { parse } from "$std/flags/mod.ts";
 
 import { sortLessons } from "./sort.ts";
 import { getContent, getCourse, getLessons } from "./api.ts";
@@ -17,11 +18,13 @@ if (!COURSE_SESSION_ID || !TOKEN) {
   throw new Error(`Necessary environmental variables not set.`);
 }
 
-if (Deno.args.length != 1) {
-  throw new Error(`Necessary arguments not provided.`);
-}
+const args = parse(Deno.args, { boolean: true });
+const OUTPUT_FOLDER = args._[0];
+const INACTIVE = args.i ?? args.inactive;
 
-const OUTPUT_FOLDER = Deno.args[0];
+if (!OUTPUT_FOLDER) {
+  throw new Error(`No output folder provided`);
+}
 
 console.info(`Start scraping course '${COURSE_SESSION_ID}' into '${OUTPUT_FOLDER} ...`);
 
@@ -54,11 +57,12 @@ for (const lessonsObj of lessonsArray) {
     continue;
   }
 
-  if (active === false) {
-    // console.debug(`Scraping [INACTIVE] '${title}' ...`);
-  } else {
-    // console.debug(`Scraping '${title}' ...`);
+  if (!active && !INACTIVE) {
+    // console.debug(`Skipping inactive '${title}' ...`);
+    continue;
   }
+
+  // console.debug(`Scraping '${title}${!active ? ` [INACTIVE]` : ""}' ...`);
 
   const content_page = await getContent(lesson_id, content_page_id, COURSE_SESSION_ID, TOKEN);
 

@@ -44,7 +44,9 @@ deno task scrape some/folder
 ```
 
 - scrapes raw content
-- arguments: mandatory output folder
+- arguments: output folder
+- options:
+  - `-i`, `--inactive`: include inactive (default false)
 - note: this might take some time, around `total_count` of lessons times `DELAY` seconds
 
 ### Parse
