@@ -40,10 +40,11 @@ DELAY_OFFSET=2000
 ### Scrape
 
 ```sh
-deno task scrape
+deno task scrape some/folder
 ```
 
 - scrapes raw content
+- arguments: mandatory output folder
 - note: this might take some time, around `total_count` of lessons times `DELAY` seconds
 
 ### Parse

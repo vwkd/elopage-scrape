@@ -1,4 +1,5 @@
 import "$std/dotenv/load.ts";
+import { join } from "$std/path/mod.ts";
 
 import { sortLessons } from "./sort.ts";
 import { getContent, getCourse, getLessons } from "./api.ts";
@@ -7,24 +8,36 @@ import type { Content } from "./types/content.ts";
 const COURSE_SESSION_ID = Deno.env.get("COURSE_SESSION_ID");
 const TOKEN = Deno.env.get("ACCESS_TOKEN");
 
-const COURSE_FILEPATH = "tmp/course.json";
-const LESSONS_FILEPATH = "tmp/lessons.json";
-const CONTENT_FILEPATH = "tmp/content.json";
+const RAW_SUBFOLDER = "raw";
+const COURSE_FILENAME = "course.json";
+const LESSONS_FILENAME = "lessons.json";
+const CONTENT_FILENAME = "content.json";
 
 if (!COURSE_SESSION_ID || !TOKEN) {
   throw new Error(`Necessary environmental variables not set.`);
 }
 
-console.info(`Start scraping course '${COURSE_SESSION_ID}' ...`);
+if (Deno.args.length != 1) {
+  throw new Error(`Necessary arguments not provided.`);
+}
+
+const OUTPUT_FOLDER = Deno.args[0];
+
+console.info(`Start scraping course '${COURSE_SESSION_ID}' into '${OUTPUT_FOLDER} ...`);
+
+// noop if directory already exists, doesn't throw due to `recursive: true`
+await Deno.mkdir(join(OUTPUT_FOLDER, RAW_SUBFOLDER), { recursive: true });
 
 console.info(`Scraping course details ...`);
 const course = await getCourse(COURSE_SESSION_ID, TOKEN);
-await Deno.writeTextFile(COURSE_FILEPATH, JSON.stringify(course));
+const course_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, COURSE_FILENAME);
+await Deno.writeTextFile(course_filepath, JSON.stringify(course));
 
 console.info(`Scraping lesson index ...`);
 const lessonsUnsorted = await getLessons(COURSE_SESSION_ID, TOKEN);
 const lessons = sortLessons(lessonsUnsorted);
-await Deno.writeTextFile(LESSONS_FILEPATH, JSON.stringify(lessons));
+const lessons_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, LESSONS_FILENAME);
+await Deno.writeTextFile(lessons_filepath, JSON.stringify(lessons));
 
 console.info(`Scraping lesson content ...`);
 const content: Content[] = [];
@@ -52,4 +65,5 @@ for (const lessonsObj of lessonsArray) {
   content.push(content_page);
 }
 
-await Deno.writeTextFile(CONTENT_FILEPATH, JSON.stringify(content));
+const content_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, CONTENT_FILENAME);
+await Deno.writeTextFile(content_filepath, JSON.stringify(content));
