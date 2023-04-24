@@ -10,6 +10,10 @@ const USER_AGENT = Deno.env.get("USER_AGENT");
 const DELAY = Deno.env.get("DELAY");
 const DELAY_OFFSET = Deno.env.get("DELAY_OFFSET");
 
+if (!USER_AGENT || !DELAY || !DELAY_OFFSET) {
+  throw new Error(`Necessary environmental variables not set.`);
+}
+
 /**
  * Get course details from API
  * - note: delayed by delay +- random offset

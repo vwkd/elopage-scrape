@@ -11,6 +11,10 @@ const COURSE_FILEPATH = "tmp/course.json";
 const LESSONS_FILEPATH = "tmp/lessons.json";
 const CONTENT_FILEPATH = "tmp/content.json";
 
+if (!START_URL || !TOKEN) {
+  throw new Error(`Necessary environmental variables not set.`);
+}
+
 const url = new URL(START_URL);
 const course_session_id = url.searchParams.get("course_session_id");
 console.info(`Start scraping course '${course_session_id}' ...`);
