@@ -1,6 +1,7 @@
 import "$std/dotenv/load.ts";
 import { exists } from "$std/fs/exists.ts";
 import { join } from "$std/path/mod.ts";
+import { parse } from "$std/flags/mod.ts";
 
 import TurndownService from "npm:turndown";
 import { format } from "npm:prettier";
@@ -28,11 +29,13 @@ if (!USER_AGENT || !DELAY || !DELAY_OFFSET) {
   throw new Error(`Necessary environmental variables not set.`);
 }
 
-if (Deno.args.length != 1) {
-  throw new Error(`Necessary arguments not provided.`);
-}
+const args = parse(Deno.args, { boolean: ["v", "verbose"] });
+const OUTPUT_FOLDER = args._[0];
+const VERBOSE = args.v ?? args.verbose;
 
-const OUTPUT_FOLDER = Deno.args[0];
+if (!OUTPUT_FOLDER) {
+  throw new Error(`No output folder provided`);
+}
 
 const turndownService = new TurndownService({
   headingStyle: "atx",
@@ -77,7 +80,7 @@ for (const lessonsObj of lessonsArray) {
   const active = lessonsObj.active;
   const header = lessonsObj.name + (active ? "" : " [INACTIVE]");
 
-  // console.debug(`Adding lesson '${header}' ...`);
+  VERBOSE && console.debug(`Adding lesson '${header}' ...`);
 
   output += `\n##${"#".repeat(nesting_level)} ${header}\n`;
 
@@ -211,10 +214,10 @@ async function download(url: string, filepath: string) {
     isReadable: true,
     isFile: true,
   })) {
-    // console.debug(`Skip download already exists '${filepath}'`);
+    VERBOSE && console.debug(`Skip download already exists '${filepath}'`);
     return;
   } else {
-    // console.debug(`Downloading '${filepath}' ...`);
+    VERBOSE && console.debug(`Downloading '${filepath}' ...`);
   }
 
   await delay(random_number(DELAY, DELAY_OFFSET));
