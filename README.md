@@ -47,6 +47,7 @@ deno task scrape some/folder
 - arguments: output folder
 - options:
   - `-i`, `--inactive`: include inactive (default false)
+  - `-v`, `--verbose`: verbose logging (default false)
 - note: this might take some time, around `total_count` of lessons times `DELAY` seconds
 
 ### Parse

@@ -21,6 +21,7 @@ if (!COURSE_SESSION_ID || !TOKEN) {
 const args = parse(Deno.args, { boolean: true });
 const OUTPUT_FOLDER = args._[0];
 const INACTIVE = args.i ?? args.inactive;
+const VERBOSE = args.v ?? args.verbose;
 
 if (!OUTPUT_FOLDER) {
   throw new Error(`No output folder provided`);
@@ -53,16 +54,16 @@ for (const lessonsObj of lessonsArray) {
   const active = lessonsObj.active;
 
   if (!content_page_id) {
-    // console.debug(`Skipping section header '${title}'`);
+    VERBOSE && console.debug(`Skipping section header '${title}'`);
     continue;
   }
 
   if (!active && !INACTIVE) {
-    // console.debug(`Skipping inactive '${title}' ...`);
+    VERBOSE && console.debug(`Skipping inactive '${title}' ...`);
     continue;
   }
 
-  // console.debug(`Scraping '${title}${!active ? ` [INACTIVE]` : ""}' ...`);
+  VERBOSE && console.debug(`Scraping '${title}${!active ? ` [INACTIVE]` : ""}' ...`);
 
   const content_page = await getContent(lesson_id, content_page_id, COURSE_SESSION_ID, TOKEN);
 
