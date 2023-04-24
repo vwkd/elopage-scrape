@@ -1,9 +1,9 @@
 import "$std/dotenv/load.ts";
 import { exists } from "$std/fs/exists.ts";
+import { join } from "$std/path/mod.ts";
 
 import TurndownService from "npm:turndown";
 import { format } from "npm:prettier";
-import { join } from "$std/path/mod.ts";
 
 import { delay, random_number } from "./utils.ts";
 import type { Course } from "./types/course.ts";
@@ -14,11 +14,11 @@ const USER_AGENT = Deno.env.get("USER_AGENT");
 const DELAY = Deno.env.get("DELAY");
 const DELAY_OFFSET = Deno.env.get("DELAY_OFFSET");
 
-const COURSE_FILEPATH = "tmp/course.json";
-const LESSONS_FILEPATH = "tmp/lessons.json";
-const CONTENT_FILEPATH = "tmp/content.json";
+const RAW_SUBFOLDER = "raw";
+const COURSE_FILENAME = "course.json";
+const LESSONS_FILENAME = "lessons.json";
+const CONTENT_FILENAME = "content.json";
 
-const OUTPUT_FOLDER = "out";
 const MD_FILENAME = "text.md";
 const IMAGES_SUBFOLDER = "images";
 const VIDEOS_SUBFOLDER = "videos";
@@ -27,6 +27,12 @@ const FILES_SUBFOLDER = "files";
 if (!USER_AGENT || !DELAY || !DELAY_OFFSET) {
   throw new Error(`Necessary environmental variables not set.`);
 }
+
+if (Deno.args.length != 1) {
+  throw new Error(`Necessary arguments not provided.`);
+}
+
+const OUTPUT_FOLDER = Deno.args[0];
 
 const turndownService = new TurndownService({
   headingStyle: "atx",
@@ -37,9 +43,12 @@ const turndownService = new TurndownService({
 
 let output = "";
 
-const courseJson = await Deno.readTextFile(COURSE_FILEPATH);
-const lessonsJson = await Deno.readTextFile(LESSONS_FILEPATH);
-const contentJson = await Deno.readTextFile(CONTENT_FILEPATH);
+const course_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, COURSE_FILENAME);
+const courseJson = await Deno.readTextFile(course_filepath);
+const lessons_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, LESSONS_FILENAME);
+const lessonsJson = await Deno.readTextFile(lessons_filepath);
+const content_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, CONTENT_FILENAME);
+const contentJson = await Deno.readTextFile(content_filepath);
 const course: Course = JSON.parse(courseJson);
 const lessons: Lessons = JSON.parse(lessonsJson);
 const contentArray: Content[] = JSON.parse(contentJson);
@@ -47,6 +56,17 @@ const contentArray: Content[] = JSON.parse(contentJson);
 const title = course.data.product.name;
 
 console.info(`Start parsing course '${title}' ...`);
+
+// noop if directory already exists, doesn't throw due to `recursive: true`
+if (INCLUDE.includes("p")) {
+  await Deno.mkdir(join(OUTPUT_FOLDER, IMAGES_SUBFOLDER), { recursive: true });
+}
+if (INCLUDE.includes("v")) {
+  await Deno.mkdir(join(OUTPUT_FOLDER, VIDEOS_SUBFOLDER), { recursive: true });
+}
+if (INCLUDE.includes("f")) {
+  await Deno.mkdir(join(OUTPUT_FOLDER, FILES_SUBFOLDER), { recursive: true });
+}
 
 output += `# ${title}\n`;
 
@@ -202,7 +222,7 @@ async function download(url: string, filepath: string) {
   try {
     const res = await fetch(url, {
       "headers": {
-        "accept": "application/json, text/plain, */*",
+        "accept": "application/json, text/plain, *",
         "accept-encoding": "gzip, deflate, br",
         "accept-language": "en-GB,en;q=0.5",
         "referer": "https://elopage.com/",

@@ -50,9 +50,10 @@ deno task scrape some/folder
 ### Parse
 
 ```sh
-deno task parse
+deno task parse some/folder
 ```
 
 - parses raw content, downloads linked files, and writes markdown file
+- arguments: mandatory output folder
 - note: existing files aren't overwritten, i.e. if some downloads fail can simply rerun until has downloaded all
 - note: if downloads error with 403 then links in raw content expired, can rerun `scrape` to get fresh raw content and then run `parse` again
