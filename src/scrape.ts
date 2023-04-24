@@ -4,27 +4,25 @@ import { sortLessons } from "./sort.ts";
 import { getContent, getCourse, getLessons } from "./api.ts";
 import type { Content } from "./types/content.ts";
 
-const START_URL = Deno.env.get("START_URL");
+const COURSE_SESSION_ID = Deno.env.get("COURSE_SESSION_ID");
 const TOKEN = Deno.env.get("ACCESS_TOKEN");
 
 const COURSE_FILEPATH = "tmp/course.json";
 const LESSONS_FILEPATH = "tmp/lessons.json";
 const CONTENT_FILEPATH = "tmp/content.json";
 
-if (!START_URL || !TOKEN) {
+if (!COURSE_SESSION_ID || !TOKEN) {
   throw new Error(`Necessary environmental variables not set.`);
 }
 
-const url = new URL(START_URL);
-const course_session_id = url.searchParams.get("course_session_id");
-console.info(`Start scraping course '${course_session_id}' ...`);
+console.info(`Start scraping course '${COURSE_SESSION_ID}' ...`);
 
 console.info(`Scraping course details ...`);
-const course = await getCourse(course_session_id, TOKEN);
+const course = await getCourse(COURSE_SESSION_ID, TOKEN);
 await Deno.writeTextFile(COURSE_FILEPATH, JSON.stringify(course));
 
 console.info(`Scraping lesson index ...`);
-const lessonsUnsorted = await getLessons(course_session_id, TOKEN);
+const lessonsUnsorted = await getLessons(COURSE_SESSION_ID, TOKEN);
 const lessons = sortLessons(lessonsUnsorted);
 await Deno.writeTextFile(LESSONS_FILEPATH, JSON.stringify(lessons));
 
@@ -49,7 +47,7 @@ for (const lessonsObj of lessonsArray) {
     // console.debug(`Scraping '${title}' ...`);
   }
 
-  const content_page = await getContent(lesson_id, content_page_id, course_session_id, TOKEN);
+  const content_page = await getContent(lesson_id, content_page_id, COURSE_SESSION_ID, TOKEN);
 
   content.push(content_page);
 }
