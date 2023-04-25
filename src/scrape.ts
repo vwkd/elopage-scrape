@@ -45,7 +45,7 @@ await Deno.writeTextFile(lessons_filepath, JSON.stringify(lessons));
 
 // note: needs to always load fresh content since can't reuse existing
 // can't derive from lessons if content got updated in meantime, because `updated_at` property of content object doesn't match `updated_at` property of lesson object
-console.info(`Scraping lesson content ...`);
+console.info(`Scraping content of ${lessons.data.total_count} lessons ...`);
 const content: Content[] = [];
 const lessonsArray = lessons.data.list;
 for (const lessonsObj of lessonsArray) {
