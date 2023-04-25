@@ -29,10 +29,11 @@ if (!USER_AGENT || !DELAY || !DELAY_OFFSET) {
   throw new Error(`Necessary environmental variables not set.`);
 }
 
-const args = parse(Deno.args, { boolean: ["v", "verbose"], string: ["i", "include"] });
+const args = parse(Deno.args, { boolean: ["v", "verbose", "f", "force"], string: ["i", "include"] });
 const OUTPUT_FOLDER = args._[0];
 const VERBOSE = args.v ?? args.verbose;
 const INCLUDE = args.i ?? args.include ?? "pvf";
+const FORCE = args.f ?? args.force;
 
 if (!OUTPUT_FOLDER) {
   throw new Error(`No output folder provided`);
@@ -153,7 +154,7 @@ for (const lessonsObj of lessonsArray) {
       // const url2 = child.goods[0].digital.file.icon;
 
       const filepath = join(OUTPUT_FOLDER, IMAGES_SUBFOLDER, filename);
-      await download(url, filepath);
+      await download(url, filepath, FORCE);
     } else if (form == "video") {
       // todo: verify that there always is name and url
 
@@ -182,7 +183,7 @@ for (const lessonsObj of lessonsArray) {
       //child.goods[0].digital.file....
 
       const filepath = join(OUTPUT_FOLDER, VIDEOS_SUBFOLDER, filename);
-      await download(url, filepath);
+      await download(url, filepath, FORCE);
     } else if (form == "file") {
       // todo: verify that there always is name and url
 
@@ -208,7 +209,7 @@ for (const lessonsObj of lessonsArray) {
       // const url2 = child.goods[0].digital.file.icon;
 
       const filepath = join(OUTPUT_FOLDER, FILES_SUBFOLDER, filename);
-      await download(url, filepath);
+      await download(url, filepath, FORCE);
     } else {
       throw new Error(`ERROR: Unexpected content block form '${form}'`);
     }
@@ -222,8 +223,8 @@ await Deno.writeTextFile(filepath, output);
  * Download file and streamingly write
  * - note: delayed by delay +- random offset
  */
-async function download(url: string, filepath: string) {
-  if (await exists(filepath, {
+async function download(url: string, filepath: string, overwrite: boolean) {
+  if (!overwrite && await exists(filepath, {
     isReadable: true,
     isFile: true,
   })) {
