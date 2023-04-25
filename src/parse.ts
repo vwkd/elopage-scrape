@@ -45,8 +45,6 @@ const turndownService = new TurndownService({
   codeBlockStyle: "fenced",
 });
 
-let output = "";
-
 const course_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, COURSE_FILENAME);
 const courseJson = await Deno.readTextFile(course_filepath);
 const lessons_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, LESSONS_FILENAME);
@@ -71,6 +69,8 @@ if (INCLUDE.includes("v")) {
 if (INCLUDE.includes("f")) {
   await Deno.mkdir(join(OUTPUT_FOLDER, FILES_SUBFOLDER), { recursive: true });
 }
+
+let output = "";
 
 output += `# ${title}\n`;
 
