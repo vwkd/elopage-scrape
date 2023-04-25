@@ -43,6 +43,8 @@ const lessons = sortLessons(lessonsUnsorted);
 const lessons_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, LESSONS_FILENAME);
 await Deno.writeTextFile(lessons_filepath, JSON.stringify(lessons));
 
+// note: needs to always load fresh content since can't reuse existing
+// can't derive from lessons if content got updated in meantime, because `updated_at` property of content object doesn't match `updated_at` property of lesson object
 console.info(`Scraping lesson content ...`);
 const content: Content[] = [];
 const lessonsArray = lessons.data.list;
