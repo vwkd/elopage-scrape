@@ -29,9 +29,10 @@ if (!USER_AGENT || !DELAY || !DELAY_OFFSET) {
   throw new Error(`Necessary environmental variables not set.`);
 }
 
-const args = parse(Deno.args, { boolean: ["v", "verbose"] });
+const args = parse(Deno.args, { boolean: ["v", "verbose"], string: ["i", "include"] });
 const OUTPUT_FOLDER = args._[0];
 const VERBOSE = args.v ?? args.verbose;
+const INCLUDE = args.i ?? args.include ?? "pvf";
 
 if (!OUTPUT_FOLDER) {
   throw new Error(`No output folder provided`);
@@ -128,6 +129,10 @@ for (const lessonsObj of lessonsArray) {
     } else if (form == "picture") {
       // todo: verify that there always is name and url
 
+      if (!INCLUDE.includes("p")) {
+        continue;
+      }
+
       // todo: remove after verified and noted
       if (child.goods.length > 1) {
         console.warn(`WARNING: Choosing first of multiple goods in '${child.id}'`);
@@ -151,6 +156,10 @@ for (const lessonsObj of lessonsArray) {
       await download(url, filepath);
     } else if (form == "video") {
       // todo: verify that there always is name and url
+
+      if (!INCLUDE.includes("v")) {
+        continue;
+      }
 
       // todo: remove after verified and noted
       if (child.goods.length > 1) {
@@ -176,6 +185,10 @@ for (const lessonsObj of lessonsArray) {
       await download(url, filepath);
     } else if (form == "file") {
       // todo: verify that there always is name and url
+
+      if (!INCLUDE.includes("f")) {
+        continue;
+      }
 
       // todo: remove after verified and noted
       if (child.goods.length > 1) {
