@@ -3,8 +3,10 @@ import { exists } from "$std/fs/exists.ts";
 import { join } from "$std/path/mod.ts";
 import { parse } from "$std/flags/mod.ts";
 
-import TurndownService from "npm:turndown";
-import { format } from "npm:prettier";
+import { unified } from "npm:unified";
+import rehypeParse from "npm:rehype-parse";
+import rehypeRemark from "npm:rehype-remark";
+import remarkStringify from "npm:remark-stringify";
 
 import { delay, random_number } from "./utils.ts";
 import type { Course } from "./types/course.ts";
@@ -38,13 +40,6 @@ const FORCE = args.f ?? args.force;
 if (!OUTPUT_FOLDER) {
   throw new Error(`No output folder provided`);
 }
-
-const turndownService = new TurndownService({
-  headingStyle: "atx",
-  hr: "---",
-  bulletListMarker: "-",
-  codeBlockStyle: "fenced",
-});
 
 const course_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, COURSE_FILENAME);
 const courseJson = await Deno.readTextFile(course_filepath);
@@ -119,11 +114,18 @@ for (const lessonsObj of lessonsArray) {
         continue;
       }
 
-      // fix unrespected line breaks [#433](https://github.com/mixmark-io/turndown/issues/433)
-      const html_fixed = text.replace(/<strong>(<br>)+<\/strong>/g, "$1");
-
-      const md_ugly = turndownService.turndown(html_fixed);
-      const md = format(md_ugly, { parser: "markdown" });
+      const md = await unified()
+        .use(rehypeParse, { fragment: true })
+        .use(rehypeRemark)
+        .use(remarkStringify, {
+          bullet: "-",
+          emphasis: "_",
+          fences: true,
+          listItemIndent: "one",
+          resourceLink: true,
+          rule: "-",
+        })
+        .process(text);
 
       // note: prettier already adds one trailing newline
       output += `\n${md}`;
