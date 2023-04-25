@@ -1,6 +1,6 @@
 import "$std/dotenv/load.ts";
 import { exists } from "$std/fs/exists.ts";
-import { join } from "$std/path/mod.ts";
+import { join, resolve } from "$std/path/mod.ts";
 import { parse } from "$std/flags/mod.ts";
 
 import { unified } from "npm:unified";
@@ -31,15 +31,35 @@ if (!USER_AGENT || !DELAY || !DELAY_OFFSET) {
   throw new Error(`Necessary environmental variables not set.`);
 }
 
-const args = parse(Deno.args, { boolean: ["v", "verbose", "f", "force"], string: ["i", "include"] });
+const args = parse(Deno.args, { boolean: ["v", "verbose", "f", "force"], string: ["i", "include", "h", "rehype", "m", "remark"] });
 const OUTPUT_FOLDER = args._[0];
 const VERBOSE = args.v ?? args.verbose;
 const INCLUDE = args.i ?? args.include ?? "pvf";
 const FORCE = args.f ?? args.force;
+const REHYPE_PATH = args.h ?? args.rehype;
+const REMARK_PATH = args.m ?? args.remark;
 
 if (!OUTPUT_FOLDER) {
   throw new Error(`No output folder provided`);
 }
+
+// todo: error handling
+const rehypePlugins: unknown = REHYPE_PATH ? (await import(resolve(Deno.cwd(), REHYPE_PATH))).default : [];
+const remarkPlugins: unknown = REMARK_PATH ? (await import(resolve(Deno.cwd(), REMARK_PATH))).default : [];
+
+const html2md = unified()
+  .use(rehypeParse, { fragment: true })
+  .use(rehypePlugins)
+  .use(rehypeRemark)
+  .use(remarkPlugins)
+  .use(remarkStringify, {
+    bullet: "-",
+    emphasis: "_",
+    fences: true,
+    listItemIndent: "one",
+    resourceLink: true,
+    rule: "-",
+  });
 
 const course_filepath = join(OUTPUT_FOLDER, RAW_SUBFOLDER, COURSE_FILENAME);
 const courseJson = await Deno.readTextFile(course_filepath);
@@ -114,17 +134,7 @@ for (const lessonsObj of lessonsArray) {
         continue;
       }
 
-      const md = await unified()
-        .use(rehypeParse, { fragment: true })
-        .use(rehypeRemark)
-        .use(remarkStringify, {
-          bullet: "-",
-          emphasis: "_",
-          fences: true,
-          listItemIndent: "one",
-          resourceLink: true,
-          rule: "-",
-        })
+      const md = await html2md
         .process(text);
 
       // note: prettier already adds one trailing newline

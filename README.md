@@ -10,7 +10,7 @@ Script to scrape elopage courses
 - Save text as single markdown file with nested headers
 - Download all linked files like images, videos and documents
 
-Note: The resulting markdown may have imperfections like empty hyperlinks, empty formatting tags, and more. These originate from elopage's HTML likely due to incorrect use of WYSIWYG formatting by the course author.
+Note: The resulting markdown may have imperfections like missing line breaks, duplicate formatting tags, empty hyperlinks, etc. These originate from elopage's HTML, likely due to incorrect HTML generation by a WYSIWYG editor provided to the course author. Using the options `-h` / `-m` you can provide `rehype` / `remark` plugins to clean up the HTML / Markdown.
 
 
 
@@ -62,6 +62,8 @@ deno task parse some/folder
   - `-v`, `--verbose`: verbose logging (default false)
   - `-i`, `--include`: include and download pictures, videos, and/or files, allowed values `pvf` (default `pvf` (all))
   - `-f`, `--force`: force overwriting existing files (default false)
+  - `-h`, `--rehype`: filepath with default export of rehype plugins, single function or array of functions (default undefined)
+  - `-m`, `--remark`: filepath with default export of remark plugins, single function or array of functions (default undefined)
 - note: existing files aren't overwritten, i.e. if some downloads fail can simply rerun until has downloaded all
 - note: doesn't check if file content was updated, needs to check manually and download again if necessary, e.g. using `-f`
 - note: if downloads error with 403 then links in raw content expired, can rerun `scrape` to get fresh raw content and then run `parse` again
